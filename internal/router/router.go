@@ -9,7 +9,7 @@ func NewRouter() *http.ServeMux {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "OK")
+		fmt.Fprintln(w, "OK Health is good!")
 	})
 
 	return mux

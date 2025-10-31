@@ -3,8 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
-	"github.com/brothify/internal/router"
-	
+	"github.com/brothify/internal/router"	
 )
 
 func main() {
