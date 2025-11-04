@@ -11,6 +11,7 @@ func NewRouter() *http.ServeMux {
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "OK Health is good!")
 	})
+	mux.HandleFunc("/v1/api/category", dishCategory) 
 
 	return mux
 }
