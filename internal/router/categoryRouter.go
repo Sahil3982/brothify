@@ -1,8 +1,8 @@
 package router
 
 import (
-	"encoding/json"
 	"net/http"
+	"github.com/brothify/internal/helpers"
 )
 
 type Category struct {
@@ -20,10 +20,9 @@ func dishCategory(w http.ResponseWriter, r *http.Request) {
 			{CATID: 5, CATNAME: "Juice"},
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(categories)
+		helpers.JSON(w, http.StatusOK, categories)
 		return
 	}
 
-	http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+	helpers.Error(w, http.StatusBadRequest, "Invalid request method")
 }
