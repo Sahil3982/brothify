@@ -6,7 +6,7 @@ dish_price
 dish_category
 dish_rating
 dish_highlight
-dish_url : []
+dish_url :
 avialability
 createdAt
 updatedAt
