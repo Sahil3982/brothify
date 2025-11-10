@@ -16,3 +16,7 @@ func NewDishService(repo *repositories.DishRepository) *DishService {
 func (s *DishService) GetAllDishes() ([]models.Dish, error) {
 	return s.repo.GetAllDishes()
 }
+
+func (s *DishService) CreateDish(d *models.Dish) error {
+	return s.repo.CreateDish(d)
+}

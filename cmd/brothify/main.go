@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net/http"
 
@@ -13,7 +12,7 @@ import (
 
 func main() {
 	db := database.ConnectingDb()
-	defer db.Close(context.Background())
+	defer db.Close()
 	dishRepo := repositories.NewDishRepository(db)
 	dishService := services.NewDishService(dishRepo)
 	dishHandler := router.NewDishHandler(dishService)
