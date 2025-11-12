@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: brothify
+    env: go
+    plan: free
+    buildCommand: go build -o brothify ./cmd/brothify
+    startCommand: ./brothify
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: PORT
+        value: 8080
