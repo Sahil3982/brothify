@@ -61,3 +61,18 @@ func (r *DishRepository) CreateDish(d *models.Dish) error {
 		d.NAME, d.DESCRIPTION, d.PRICE)
 	return err
 }
+
+func (r *DishRepository) UpdateDish(id string, d *models.Dish) error {
+	log.Println("✅ Dishes id:", id)
+	ctx := context.Background()
+	query := "UPDATE dishes SET dish_name = $1, description = $2, price = $3 WHERE dish_id = $4"
+	_, err := r.DB.Exec(ctx, query, d.NAME, d.DESCRIPTION, d.PRICE, id)
+	return err
+}
+
+func (r *DishRepository) DeleteDish(id string) error {
+	ctx := context.Background()
+	_, err := r.DB.Exec(ctx, "DELETE FROM dishes WHERE dish_id = $1", id)
+	return err
+}
+

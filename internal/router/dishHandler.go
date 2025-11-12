@@ -2,8 +2,8 @@ package router
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
-
 	"github.com/brothify/internal/helpers"
 	"github.com/brothify/internal/models"
 	"github.com/brothify/internal/services"
@@ -43,12 +43,13 @@ func (h *DishHandler) getAllDishes(w http.ResponseWriter, r *http.Request) {
 
 func (h *DishHandler) createDish(w http.ResponseWriter, r *http.Request) {
 	var d models.Dish
-	err := json.NewDecoder(r.Body).Decode(&d); if err != nil {
+	err := json.NewDecoder(r.Body).Decode(&d)
+	if err != nil {
 		helpers.Error(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 
-	if  d.NAME == "" || d.PRICE <= 0 {
+	if d.NAME == "" || d.PRICE <= 0 {
 		http.Error(w, "Missing or invalid dish fields", http.StatusBadRequest)
 		return
 	}
@@ -62,9 +63,52 @@ func (h *DishHandler) createDish(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *DishHandler) updateDish(w http.ResponseWriter, r *http.Request) {
+	
+	id := helpers.ExtractIDFromPath(r)
+	if id == "" {
+		helpers.Error(w, http.StatusBadRequest, "Dish ID not provided")
+		return
+	}
+	log.Println("✅ Dishes_id:", id)
+
+	var d models.Dish
+	err := json.NewDecoder(r.Body).Decode(&d)
+	if err != nil {
+		helpers.Error(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	// validation logic here
+	if d.NAME == "" || d.PRICE <= 0 {
+		http.Error(w, "Missing or invalid dish fields", http.StatusBadRequest)
+		return
+	}
+
+	// call serive to update dish
+
+	if err := h.service.UpdateDish(id, &d); err != nil {
+		helpers.Error(w, http.StatusInternalServerError, "Failed to update dish")
+		return
+	}
+
+	helpers.JSON(w, http.StatusOK, map[string]string{"message": "Dish updated successfully"})
 
 }
 
 func (h *DishHandler) deleteDish(w http.ResponseWriter, r *http.Request) {
 
+	id := helpers.ExtractIDFromPath(r)
+	if id == "" {
+		helpers.Error(w, http.StatusBadRequest, "Dish ID not provided")
+		return
+	}
+
+	if err := h.service.DeleteDish(id); err != nil {
+		helpers.Error(w, http.StatusInternalServerError, "Failed to delete dish")
+		return
+	}
+
+	helpers.JSON(w, http.StatusOK, map[string]string{"message": "Dish deleted successfully"})
+
 }
+ 

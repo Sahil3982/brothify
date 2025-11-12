@@ -12,7 +12,7 @@ func NewRouter(dishHandler *DishHandler) *http.ServeMux {
 		fmt.Fprintln(w, "OK Health is good!")
 	})
 	mux.HandleFunc("/v1/api/category", dishCategory)
-	mux.Handle("/v1/api/dishes", dishHandler)
+	mux.Handle("/v1/api/dishes/", dishHandler)
 
 	return mux
 }
