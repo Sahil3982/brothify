@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -14,6 +15,7 @@ var DB *pgxpool.Pool
 func ConnectingDb() *pgxpool.Pool {
 	godotenv.Load()
 	connectionString := os.Getenv("DATABASE_URL")
+	log.Println("🔗 Database URL:", connectionString)
 
 	pool, err := pgxpool.New(context.Background(), connectionString)
 	if err != nil {
