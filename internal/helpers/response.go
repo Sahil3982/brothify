@@ -6,11 +6,21 @@ import (
 	"strings"
 )
 
-func JSON(w http.ResponseWriter, status int, data any) {
+func JSON(w http.ResponseWriter, status int, message string, data ...any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(data)
+
+	response := map[string]any{
+		"message": message,
+	}
+
+	if len(data) > 0 {
+		response["data"] = data[0]
+	}
+
+	json.NewEncoder(w).Encode(response)
 }
+
 
 func Error(w http.ResponseWriter, status int, message string) {
 	w.Header().Set("Content-Type", "application/json")

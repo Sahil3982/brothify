@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/brothify/internal/helpers"
 	"github.com/brothify/internal/models"
@@ -36,16 +37,27 @@ func (h *DishHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (h *DishHandler) getAllDishes(w http.ResponseWriter, r *http.Request) {
 	log.Println("✅ GetAllDishes called")
+	id := helpers.ExtractIDFromPath(r)
+
 	dishes, err := h.service.GetAllDishes()
+
+	dishID, _ := strconv.Atoi(id)
+	if id != "" {
+		for _, dish := range dishes {
+			if dish.ID == dishID {
+				helpers.JSON(w, http.StatusOK, "dish fetch successfully", dish)
+				return
+			}
+		}
+	}
 	if err != nil {
 		helpers.Error(w, http.StatusInternalServerError, "Failed to retrieve dishes")
 		return
 	}
-	helpers.JSON(w, http.StatusOK, dishes)
+	helpers.JSON(w, http.StatusOK, "dishes fetch successfully", dishes)
 }
 
 func (h *DishHandler) createDish(w http.ResponseWriter, r *http.Request) {
-	log.Println("✅ CreateDish called")
 	var d models.Dish
 	err := json.NewDecoder(r.Body).Decode(&d)
 	if err != nil {
@@ -54,7 +66,7 @@ func (h *DishHandler) createDish(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if d.NAME == "" || d.PRICE <= 0 {
-		http.Error(w, "Missing or invalid dish fields", http.StatusBadRequest)
+		http.Error(w, "Name and Price are missing please provide", http.StatusBadRequest)
 		return
 	}
 
@@ -64,43 +76,63 @@ func (h *DishHandler) createDish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	helpers.JSON(w, http.StatusCreated, map[string]interface{}{
-		"message": "Dish created successfully",
-		"data":    createdDish,
-	})
+	helpers.JSON(w, http.StatusCreated, "Dish created successfully", createdDish)
 }
 
 func (h *DishHandler) updateDish(w http.ResponseWriter, r *http.Request) {
-
 	id := helpers.ExtractIDFromPath(r)
 	if id == "" {
 		helpers.Error(w, http.StatusBadRequest, "Dish ID not provided")
 		return
 	}
-	log.Println("✅ Dishes_id:", id)
+
+	dishID, err := strconv.Atoi(id)
+	if err != nil {
+		helpers.Error(w, http.StatusBadRequest, "Invalid dish ID")
+		return
+	}
 
 	var d models.Dish
-	err := json.NewDecoder(r.Body).Decode(&d)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&d); err != nil {
 		helpers.Error(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 
-	// validation logic here
 	if d.NAME == "" || d.PRICE <= 0 {
-		http.Error(w, "Missing or invalid dish fields", http.StatusBadRequest)
+		helpers.Error(w, http.StatusBadRequest, "Name and Price are required")
 		return
 	}
 
-	// call serive to update dish
+	// ✅ First check if dish exists
+	allDishes, err := h.service.GetAllDishes()
+	if err != nil {
+		helpers.Error(w, http.StatusInternalServerError, "Failed to fetch dishes for validation")
+		return
+	}
 
+	var exists bool
+	for _, dish := range allDishes {
+		if dish.ID == dishID {
+			exists = true
+			break
+		}
+	}
+
+	if !exists {
+		helpers.Error(w, http.StatusNotFound, "Dish not found with given ID")
+		return
+	}
+
+	// Ensure the dish ID is set from the path
+	d.ID = dishID
+
+	// ✅ Proceed to update
 	if err := h.service.UpdateDish(id, &d); err != nil {
 		helpers.Error(w, http.StatusInternalServerError, "Failed to update dish")
 		return
 	}
 
-	helpers.JSON(w, http.StatusOK, map[string]string{"message": "Dish updated successfully"})
-
+	helpers.JSON(w, http.StatusOK, "Dish updated successfully", d)
 }
 
 func (h *DishHandler) deleteDish(w http.ResponseWriter, r *http.Request) {
@@ -116,6 +148,6 @@ func (h *DishHandler) deleteDish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	helpers.JSON(w, http.StatusOK, map[string]string{"message": "Dish deleted successfully"})
+	helpers.JSON(w, http.StatusOK, "Dish deleted successfully")
 
 }

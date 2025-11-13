@@ -20,7 +20,7 @@ func dishCategory(w http.ResponseWriter, r *http.Request) {
 			{CATID: 5, CATNAME: "Juice"},
 		}
 
-		helpers.JSON(w, http.StatusOK, categories)
+		helpers.JSON(w, http.StatusOK, "category fetch successfully", categories)
 		return
 	}
 
