@@ -17,9 +17,10 @@ func (s *DishService) GetAllDishes() ([]models.Dish, error) {
 	return s.repo.GetAllDishes()
 }
 
-func (s *DishService) CreateDish(d *models.Dish) error {
+func (s *DishService) CreateDish(d *models.Dish) (*models.Dish, error) {
 	return s.repo.CreateDish(d)
 }
+
 
 func (s *DishService) UpdateDish(id string, d *models.Dish) error {
 	return s.repo.UpdateDish(id, d)

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
 	"github.com/brothify/internal/helpers"
 	"github.com/brothify/internal/models"
 	"github.com/brothify/internal/services"
@@ -18,6 +19,7 @@ func NewDishHandler(service *services.DishService) *DishHandler {
 }
 
 func (h *DishHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Println("✅ DishHandler ServeHTTP called with method:", r.Method)
 	switch r.Method {
 	case http.MethodGet:
 		h.getAllDishes(w, r)
@@ -33,15 +35,17 @@ func (h *DishHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *DishHandler) getAllDishes(w http.ResponseWriter, r *http.Request) {
+	log.Println("✅ GetAllDishes called")
 	dishes, err := h.service.GetAllDishes()
 	if err != nil {
-		http.Error(w, "Failed to retrieve dishes", http.StatusInternalServerError)
+		helpers.Error(w, http.StatusInternalServerError, "Failed to retrieve dishes")
 		return
 	}
 	helpers.JSON(w, http.StatusOK, dishes)
 }
 
 func (h *DishHandler) createDish(w http.ResponseWriter, r *http.Request) {
+	log.Println("✅ CreateDish called")
 	var d models.Dish
 	err := json.NewDecoder(r.Body).Decode(&d)
 	if err != nil {
@@ -54,16 +58,20 @@ func (h *DishHandler) createDish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.CreateDish(&d); err != nil {
+	createdDish, err := h.service.CreateDish(&d)
+	if err != nil {
 		http.Error(w, "Failed to create dish", http.StatusInternalServerError)
 		return
 	}
 
-	helpers.JSON(w, http.StatusCreated, map[string]string{"message": "Dish created successfully"})
+	helpers.JSON(w, http.StatusCreated, map[string]interface{}{
+		"message": "Dish created successfully",
+		"data":    createdDish,
+	})
 }
 
 func (h *DishHandler) updateDish(w http.ResponseWriter, r *http.Request) {
-	
+
 	id := helpers.ExtractIDFromPath(r)
 	if id == "" {
 		helpers.Error(w, http.StatusBadRequest, "Dish ID not provided")
@@ -111,4 +119,3 @@ func (h *DishHandler) deleteDish(w http.ResponseWriter, r *http.Request) {
 	helpers.JSON(w, http.StatusOK, map[string]string{"message": "Dish deleted successfully"})
 
 }
- 

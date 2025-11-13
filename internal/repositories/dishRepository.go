@@ -32,7 +32,6 @@ func (r *DishRepository) GetAllDishes() ([]models.Dish, error) {
 
 	for rows.Next() {
 		var d models.Dish
-		// Use *int for CATID to handle NULL
 		err := rows.Scan(
 			&d.ID, &d.NAME, &d.CATID, &d.PRICE, &d.DESCRIPTION,
 			&d.DISHURL, &d.AVAILABILITY, &d.RATING, &d.HIGHLIGHT,
@@ -54,19 +53,38 @@ func (r *DishRepository) GetAllDishes() ([]models.Dish, error) {
 	return dishes, nil
 }
 
-func (r *DishRepository) CreateDish(d *models.Dish) error {
+func (r *DishRepository) CreateDish(d *models.Dish) (*models.Dish, error) {
 	ctx := context.Background()
-	_, err := r.DB.Exec(ctx,
-		`INSERT INTO dishes (dish_name, description, price) VALUES ($1, $2, $3)`,
-		d.NAME, d.DESCRIPTION, d.PRICE)
-	return err
+	query := `
+		INSERT INTO dishes (dish_name, description, price, cat_id, dish_url, availability, rating, highlight)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		RETURNING dish_id, dish_name, cat_id, price, description, dish_url, availability, rating, highlight, created_at, updated_at
+	`
+	row := r.DB.QueryRow(ctx, query,
+		d.NAME, d.DESCRIPTION, d.PRICE, d.CATID, d.DISHURL, d.AVAILABILITY, d.RATING, d.HIGHLIGHT,
+	)
+
+	var newDish models.Dish
+	err := row.Scan(
+		&newDish.ID, &newDish.NAME, &newDish.CATID, &newDish.PRICE, &newDish.DESCRIPTION,
+		&newDish.DISHURL, &newDish.AVAILABILITY, &newDish.RATING, &newDish.HIGHLIGHT,
+		&newDish.CREATEDAT, &newDish.UPDATEDAT,
+	)
+	if err != nil {
+		log.Println("❌ Insert Scan error:", err)
+		return nil, err
+	}
+	return &newDish, nil
 }
 
 func (r *DishRepository) UpdateDish(id string, d *models.Dish) error {
-	log.Println("✅ Dishes id:", id)
 	ctx := context.Background()
-	query := "UPDATE dishes SET dish_name = $1, description = $2, price = $3 WHERE dish_id = $4"
-	_, err := r.DB.Exec(ctx, query, d.NAME, d.DESCRIPTION, d.PRICE, id)
+	query := `
+		UPDATE dishes 
+		SET dish_name = $1, description = $2, price = $3, cat_id = $4, dish_url = $5, availability = $6, rating = $7, highlight = $8
+		WHERE dish_id = $9
+	`
+	_, err := r.DB.Exec(ctx, query, d.NAME, d.DESCRIPTION, d.PRICE, d.CATID, d.DISHURL, d.AVAILABILITY, d.RATING, d.HIGHLIGHT, id)
 	return err
 }
 
@@ -75,4 +93,3 @@ func (r *DishRepository) DeleteDish(id string) error {
 	_, err := r.DB.Exec(ctx, "DELETE FROM dishes WHERE dish_id = $1", id)
 	return err
 }
-
