@@ -16,9 +16,15 @@ func main() {
 	defer db.Close()
 
 	dishRepo := repositories.NewDishRepository(db)
+	userRepo := repositories.NewUserRepository(db)
+
+	userService := services.NewUserService(userRepo)	
 	dishService := services.NewDishService(dishRepo)
+
+	userHandler := router.NewUserHandler(userService)
 	dishHandler := router.NewDishHandler(dishService)
-	mux := router.NewRouter(dishHandler)
+
+	mux := router.NewRouter(dishHandler,userHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {
