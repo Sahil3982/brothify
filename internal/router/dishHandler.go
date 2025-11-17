@@ -2,7 +2,6 @@ package router
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -20,7 +19,6 @@ func NewDishHandler(service *services.DishService) *DishHandler {
 }
 
 func (h *DishHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Println("✅ DishHandler ServeHTTP called with method:", r.Method)
 	switch r.Method {
 	case http.MethodGet:
 		h.getAllDishes(w, r)
@@ -36,7 +34,6 @@ func (h *DishHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *DishHandler) getAllDishes(w http.ResponseWriter, r *http.Request) {
-	log.Println("✅ GetAllDishes called")
 	id := helpers.ExtractIDFromPath(r)
 
 	dishes, err := h.service.GetAllDishes()
@@ -103,7 +100,6 @@ func (h *DishHandler) updateDish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// ✅ First check if dish exists
 	allDishes, err := h.service.GetAllDishes()
 	if err != nil {
 		helpers.Error(w, http.StatusInternalServerError, "Failed to fetch dishes for validation")

@@ -2,7 +2,6 @@ package router
 
 import (
 	"fmt"
-	"github.com/brothify/internal/middleware"
 	"net/http"
 )
 
@@ -14,7 +13,8 @@ func NewRouter(dishHandler *DishHandler, userHandler *UserHandler) *http.ServeMu
 	})
 	mux.HandleFunc("/v1/api/category/", dishCategory)
 	mux.Handle("/v1/api/dishes/", dishHandler)
-	mux.Handle("/v1/api/users/", middleware.AuthMiddleware(userHandler))
+	// mux.Handle("/v1/api/login/", middleware.AuthMiddleware(userHandler))
+	mux.Handle("/v1/api/login/", userHandler)
 
 	return mux
 }
