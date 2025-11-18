@@ -14,7 +14,7 @@ var DB *pgxpool.Pool
 func ConnectingDb() *pgxpool.Pool {
 	godotenv.Load()
 	connectionString := os.Getenv("DATABASE_URL")
-	RunMigrations(connectionString)
+	// RunMigrations(connectionString)
 
 	pool, err := pgxpool.New(context.Background(), connectionString)
 	if err != nil {
