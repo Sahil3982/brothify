@@ -16,17 +16,27 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 }
 
 func (r *UserRepository) LoginUser(d *models.User) (*models.User, error) {
-	ctx := context.Background()
-	query := `SELECT email, password FROM users WHERE email=$1 AND password=$2`
+    ctx := context.Background()
 
-	row := r.DB.QueryRow(ctx, query, d.EMAIL, d.PASSWORD)
-	var newUser models.User
+    query := `
+        SELECT id, name, email, password
+        FROM users
+        WHERE email=$1 AND password=$2
+    `
 
-	err := row.Scan(&newUser.EMAIL, &newUser.PASSWORD)
-	if err != nil {
-		return nil, err
-	}
+    row := r.DB.QueryRow(ctx, query, d.EMAIL, d.PASSWORD)
 
-	return &newUser, nil
+    var newUser models.User
 
+    err := row.Scan(
+        &newUser.ID,
+        &newUser.NAME,
+        &newUser.EMAIL,
+        &newUser.PASSWORD,
+    )
+    if err != nil {
+        return nil, err
+    }
+
+    return &newUser, nil
 }
