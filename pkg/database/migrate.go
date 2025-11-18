@@ -12,13 +12,11 @@ func RunMigrations(DB_URL string) {
 	if err != nil {
 		log.Fatalf("Failed to create migrate instance: %v", err)
 	}
-
 	m.Up()
 	if err != nil && err != migrate.ErrNoChange {
 		log.Fatalf("Migration failed: %v", err)
 		return
 	}
-
 	log.Println("Database migrated successfully")
 
 }
