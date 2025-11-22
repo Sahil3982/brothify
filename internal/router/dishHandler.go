@@ -3,11 +3,13 @@ package router
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/brothify/internal/helpers"
 	"github.com/brothify/internal/models"
 	"github.com/brothify/internal/services"
+	"github.com/brothify/internal/config"
 )
 
 type DishHandler struct {
@@ -56,16 +58,41 @@ func (h *DishHandler) getAllDishes(w http.ResponseWriter, r *http.Request) {
 
 func (h *DishHandler) createDish(w http.ResponseWriter, r *http.Request) {
 	var d models.Dish
-	err := json.NewDecoder(r.Body).Decode(&d)
+	err := r.ParseMultipartForm(10 << 20) //10MB
 	if err != nil {
-		helpers.Error(w, http.StatusBadRequest, "Invalid request payload")
+		helpers.Error(w, http.StatusBadRequest, "Invalid form data")
 		return
 	}
 
-	if d.NAME == "" || d.PRICE <= 0 {
-		http.Error(w, "Name and Price are missing please provide", http.StatusBadRequest)
+	name := r.FormValue("name")
+	priceStr := r.FormValue("price")
+
+	price, err := strconv.ParseFloat(priceStr, 64)
+	if err != nil {
+		helpers.Error(w, http.StatusBadRequest, "Invalid price")
 		return
 	}
+
+	file, fileHeader, err := r.FormFile("image")
+
+	if err != nil {
+		helpers.Error(w, http.StatusBadRequest, "Failed to retrieve image file")
+		return
+	}
+
+	defer file.Close()
+
+	dish_url, err := config.UploadImageToS3(file, fileHeader, os.Getenv("AWS_S3_BUCKET"))
+
+	if err != nil {
+		helpers.Error(w, http.StatusInternalServerError, "Failed to upload image to S3")
+		return
+	}
+
+	d.NAME = name
+	d.PRICE = price
+	d.DISHURL = &dish_url
+
 
 	createdDish, err := h.service.CreateDish(&d)
 	if err != nil {
