@@ -10,11 +10,14 @@ import (
 	"github.com/brothify/internal/services"
 	"github.com/brothify/pkg/database"
 	"github.com/brothify/internal/middleware"
+	"github.com/brothify/internal/config"
 )
 
 func main() {
 	db := database.ConnectingDb()
 	defer db.Close()
+	config.InitS3()
+	
 
 	dishRepo := repositories.NewDishRepository(db)
 	userRepo := repositories.NewUserRepository(db)

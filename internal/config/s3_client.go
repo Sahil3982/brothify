@@ -12,7 +12,7 @@ import (
 
 var S3 *s3.Client
 
-func initS3() {
+func InitS3() {
 	cfg, err := config.LoadDefaultConfig(context.TODO())
 	config.WithRegion(os.Getenv("AWS_REGION"))
 	config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(os.Getenv("AWS_ACCESS_KEY"), os.Getenv("AWS_SECRET_KEY"), ""))
@@ -20,7 +20,7 @@ func initS3() {
 	if err != nil {
 		log.Fatal("Failed to load AWS config:", err)
 	}
-
+	log.Println("AWS Config loaded successfully")
 	S3 = s3.NewFromConfig(cfg)
 
 }
