@@ -13,14 +13,19 @@ import (
 var S3 *s3.Client
 
 func InitS3() {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
-	config.WithRegion(os.Getenv("AWS_REGION"))
-	config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(os.Getenv("AWS_ACCESS_KEY"), os.Getenv("AWS_SECRET_KEY"), ""))
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion(os.Getenv("AWS_REGION")),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
+			os.Getenv("AWS_ACCESS_KEY_ID"),
+			os.Getenv("AWS_SECRET_ACCESS_KEY"),
+			"",
+		)),
+	)
 
 	if err != nil {
 		log.Fatal("Failed to load AWS config:", err)
+		return
 	}
-	log.Println("AWS Config loaded successfully")
-	S3 = s3.NewFromConfig(cfg)
 
+	S3 = s3.NewFromConfig(cfg)
 }

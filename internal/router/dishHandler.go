@@ -2,14 +2,15 @@ package router
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
 
+	"github.com/brothify/internal/config"
 	"github.com/brothify/internal/helpers"
 	"github.com/brothify/internal/models"
 	"github.com/brothify/internal/services"
-	"github.com/brothify/internal/config"
 )
 
 type DishHandler struct {
@@ -73,7 +74,7 @@ func (h *DishHandler) createDish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, fileHeader, err := r.FormFile("image")
+	file, fileHeader, err := r.FormFile("dish_url")
 
 	if err != nil {
 		helpers.Error(w, http.StatusBadRequest, "Failed to retrieve image file")
@@ -83,11 +84,12 @@ func (h *DishHandler) createDish(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	dish_url, err := config.UploadImageToS3(file, fileHeader, os.Getenv("AWS_S3_BUCKET"))
-
 	if err != nil {
 		helpers.Error(w, http.StatusInternalServerError, "Failed to upload image to S3")
 		return
 	}
+	log.Println("Uploaded image URL:", dish_url)
+
 
 	d.NAME = name
 	d.PRICE = price
