@@ -2,7 +2,6 @@ package router
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -88,8 +87,6 @@ func (h *DishHandler) createDish(w http.ResponseWriter, r *http.Request) {
 		helpers.Error(w, http.StatusInternalServerError, "Failed to upload image to S3")
 		return
 	}
-	log.Println("Uploaded image URL:", dish_url)
-
 
 	d.NAME = name
 	d.PRICE = price

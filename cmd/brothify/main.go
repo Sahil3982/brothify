@@ -21,14 +21,17 @@ func main() {
 
 	dishRepo := repositories.NewDishRepository(db)
 	userRepo := repositories.NewUserRepository(db)
+	reservationRepo := repositories.NewReservationRepository(db)
 
 	userService := services.NewUserService(userRepo)	
 	dishService := services.NewDishService(dishRepo)
+	reservationService := services.NewReservationService(reservationRepo)
 
 	userHandler := router.NewUserHandler(userService)
 	dishHandler := router.NewDishHandler(dishService)
+	reservationHandler := router.NewReservationHandler(reservationService)
 
-	mux := router.NewRouter(dishHandler,userHandler)
+	mux := router.NewRouter(dishHandler,userHandler, reservationHandler)
 	handler := middleware.CorsMiddleware(mux)
 	port := os.Getenv("PORT")
 	if port == "" {
