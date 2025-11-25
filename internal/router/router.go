@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func NewRouter(dishHandler *DishHandler, userHandler *UserHandler) *http.ServeMux {
+func NewRouter(dishHandler *DishHandler, userHandler *UserHandler, reservationHandler *ReservationHandler) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -15,6 +15,7 @@ func NewRouter(dishHandler *DishHandler, userHandler *UserHandler) *http.ServeMu
 	mux.Handle("/v1/api/dishes/", dishHandler)
 	// mux.Handle("/v1/api/login/", middleware.AuthMiddleware(userHandler))
 	mux.Handle("/v1/api/login/", userHandler)
+	mux.Handle("/v1/api/reservations/", reservationHandler)
 
 	return mux
 }
