@@ -38,41 +38,41 @@ func (h *ReservationHandler) CreateReservation(w http.ResponseWriter, r *http.Re
 	var d models.Reservation
 	err := json.NewDecoder(r.Body).Decode(&d)
 	if err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		helpers.Error(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 	res := r.Body.Close()
 	if res != nil {
-		http.Error(w, "Failed to close request body", http.StatusInternalServerError)
+		helpers.Error(w, http.StatusInternalServerError, "Failed to close request body")
 		return
 	}
 	//validate and create reservation logic here
 	if d.NUMBEROFGUESTS <= 0 {
-		http.Error(w, "Number of guests must be greater than zero", http.StatusBadRequest)
+		helpers.Error(w, http.StatusBadRequest, "Number of guests must be greater than zero")
 		return
 	}
 	if d.RESERVATIONTIME == "" {
-		http.Error(w, "Reservation time is required", http.StatusBadRequest)
+		helpers.Error(w, http.StatusBadRequest, "Reservation time is required")
 		return
 	}
 	if d.RESERVATIONPERSONNAME == "" {
-		http.Error(w, "Reservation person name is required", http.StatusBadRequest)
+		helpers.Error(w, http.StatusBadRequest, "Reservation person name is required")
 		return
 	}
 	if !utils.ValidateEmail(d.RESERVATIONPERSONEMAIL) {
-		http.Error(w, "Reservation person email is required", http.StatusBadRequest)
+		helpers.Error(w, http.StatusBadRequest, "Reservation person email is required")
 		return
 	}
 	if !utils.ValidateMobileNumber(d.RESERVATIONPERSONMOBILENUMBER) {
-		http.Error(w, "Reservation person mobile number is required", http.StatusBadRequest)
+		helpers.Error(w, http.StatusBadRequest, "Reservation person mobile number is required")
 		return
 	}
-
+	
 	// Call service to create reservation
 
 	reservationData, err := h.service.CreateReservation(&d)
 	if err != nil {
-		http.Error(w, "Failed to create reservation", http.StatusInternalServerError)
+		helpers.Error(w, http.StatusInternalServerError, "Failed to create reservation")
 		return
 	}
 

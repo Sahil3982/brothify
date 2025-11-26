@@ -1,19 +1,20 @@
 package models
 
+import "time"
+
 type Reservation struct {
-	ID                            int     `json:"reservation_id"`
-	USERID                        int     `json:"user_id"`
-	TABLEID                       int     `json:"table_id"`
-	RESERVATIONPERSONNAME         string  `json:"reservation_person_name"`
-	RESERVATIONPERSONEMAIL        string  `json:"reservation_person_email"`
-	RESERVATIONPERSONMOBILENUMBER string  `json:"reservation_person_mobile_number"`
-	RESERVATIONTIME               string  `json:"reservation_time"`
-	RESERVATIONDATE               string  `json:"reservation_date"`
-	NUMBEROFGUESTS                int     `json:"number_of_guests"`
-	SPECIALREQUESTS               *string `json:"special_requests"`
-	STATUS                        string  `json:"status"`
-	DISHITEMS                     *[]int   `json:"dish_items"`
-	NOTE                          *string `json:"note"`
-	CREATEDAT                     string  `json:"created_at"`
-	UPDATEDAT                     string  `json:"updated_at"`
+	ID                            int       `json:"reservation_id"`
+	USERID                        int       `json:"user_id"`
+	TABLENUMBER                   int       `json:"table_number"`
+	RESERVATIONPERSONNAME         string    `json:"reservation_person_name"`
+	RESERVATIONPERSONEMAIL        string    `json:"reservation_person_email"`
+	RESERVATIONPERSONMOBILENUMBER string    `json:"reservation_person_mobile_number"`
+	RESERVATIONTIME               string    `json:"reservation_time"`
+	RESERVATIONDATE               string    `json:"reservation_date"`
+	NUMBEROFGUESTS                int       `json:"number_of_guests"`
+	SPECIALREQUESTS               *string   `json:"special_requests"`
+	STATUS                        string    `json:"status"`
+	DISHITEMS                     []int    `json:"dish_items"`
+	CREATEDAT                     time.Time `json:"created_at"`
+	UPDATEDAT                     time.Time `json:"updated_at"`
 }
