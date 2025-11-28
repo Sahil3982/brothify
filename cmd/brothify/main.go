@@ -17,6 +17,9 @@ func main() {
 	db := database.ConnectingDb()
 	defer db.Close()
 	config.InitS3()
+	if err := database.RunMigration(db); err != nil {
+				log.Fatal("Migration Error:", err)
+	}
 	
 
 	dishRepo := repositories.NewDishRepository(db)
