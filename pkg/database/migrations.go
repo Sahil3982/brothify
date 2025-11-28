@@ -34,7 +34,7 @@ func RunMigration(db *pgxpool.Pool) error {
 `,
 		`CREATE TABLE IF NOT EXISTS reservations (
 			reservation_id SERIAL PRIMARY KEY,
-			user_id INT NOT NULL,
+			user_id INT NOT NULL REFERENCES users(user_id),
 			table_number INT NOT NULL,
 			reservation_person_name VARCHAR(255),
 			reservation_person_email VARCHAR(255),
@@ -49,7 +49,7 @@ func RunMigration(db *pgxpool.Pool) error {
 		);`,
 		` CREATE TABLE IF NOT EXISTS reservation_dishes (
 			id SERIAL PRIMARY KEY,
-			reservation_id INT NOT NULL REFERENCES reservation(reservation_id) ON DELETE CASCADE,
+			reservation_id INT NOT NULL REFERENCES reservations(reservation_id) ON DELETE CASCADE,
 			dish_id INT NOT NULL REFERENCES dishes(dish_id),
 			UNIQUE(reservation_id, dish_id)
 		);

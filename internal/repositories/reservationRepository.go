@@ -16,11 +16,25 @@ func NewReservationRepository(db *pgxpool.Pool) *ReservationRepository {
 }
 
 func (r *ReservationRepository) CreateReservation(d *models.Reservation) (*models.Reservation, error) {
-
 	query := `INSERT INTO reservations
-	 (user_id,table_number,reservation_person_name, reservation_person_email,reservation_person_mobile_number, number_of_guests, reservation_time,special_requests,status,note) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING reservation_id, user_id, table_number, reservation_person_name,
-              reservation_person_email, number_of_guests, reservation_time, reservation_person_mobile_number,
-              special_requests, status, note, created_at`
+	 (user_id, table_number, reservation_person_name, reservation_person_email,
+	  reservation_person_mobile_number, number_of_guests, reservation_time,
+	  special_requests, status)
+	VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+	RETURNING 
+	    reservation_id,
+	    user_id,
+	    table_number,
+	    reservation_person_name,
+	    reservation_person_email,
+	    reservation_person_mobile_number,
+	    number_of_guests,
+	    reservation_time,
+	    special_requests,
+	    status,
+	    created_at
+	`
+
 	row := r.DB.QueryRow(context.Background(), query,
 		d.USERID,
 		d.TABLENUMBER,
@@ -33,7 +47,8 @@ func (r *ReservationRepository) CreateReservation(d *models.Reservation) (*model
 		d.STATUS,
 	)
 
-	err := row.Scan(&d.ID,
+	err := row.Scan(
+		&d.ID,
 		&d.USERID,
 		&d.TABLENUMBER,
 		&d.RESERVATIONPERSONNAME,
@@ -43,13 +58,13 @@ func (r *ReservationRepository) CreateReservation(d *models.Reservation) (*model
 		&d.RESERVATIONTIME,
 		&d.SPECIALREQUESTS,
 		&d.STATUS,
-		&d.CREATEDAT)
+		&d.CREATEDAT,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	d.DISHITEMS = []int{}
-
+	// insert dish items
 	for _, dishId := range d.DISHITEMS {
 		_, err = r.DB.Exec(context.Background(),
 			`INSERT INTO reservation_dishes (reservation_id, dish_id) VALUES ($1, $2)`,
@@ -58,10 +73,8 @@ func (r *ReservationRepository) CreateReservation(d *models.Reservation) (*model
 		if err != nil {
 			return nil, err
 		}
-
-		d.DISHITEMS = append(d.DISHITEMS, dishId)
 	}
 
 	return d, nil
-
 }
+
