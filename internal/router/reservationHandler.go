@@ -2,6 +2,7 @@ package router
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/brothify/internal/helpers"
@@ -46,6 +47,11 @@ func (h *ReservationHandler) CreateReservation(w http.ResponseWriter, r *http.Re
 		helpers.Error(w, http.StatusInternalServerError, "Failed to close request body")
 		return
 	}
+	if d.USERID <= 0 {
+		helpers.Error(w, http.StatusBadRequest, "Please provide user Id")
+		return
+	}
+
 	//validate and create reservation logic here
 	if d.NUMBEROFGUESTS <= 0 {
 		helpers.Error(w, http.StatusBadRequest, "Number of guests must be greater than zero")
@@ -67,11 +73,12 @@ func (h *ReservationHandler) CreateReservation(w http.ResponseWriter, r *http.Re
 		helpers.Error(w, http.StatusBadRequest, "Reservation person mobile number is required")
 		return
 	}
-	
-	// Call service to create reservation
 
+	// Call service to create reservation
+	
 	reservationData, err := h.service.CreateReservation(&d)
 	if err != nil {
+		log.Panicln("Failed to create reservation", err)
 		helpers.Error(w, http.StatusInternalServerError, "Failed to create reservation")
 		return
 	}

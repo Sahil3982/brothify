@@ -18,7 +18,7 @@ func main() {
 	defer db.Close()
 	config.InitS3()
 	if err := database.RunMigration(db); err != nil {
-				log.Fatal("Migration Error:", err)
+		log.Fatal("Migration Error:", err)
 	}
 	
 
