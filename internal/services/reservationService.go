@@ -15,8 +15,8 @@ func NewReservationService(repo *repositories.ReservationRepository) *Reservatio
 	return &ReservationService{repo: repo}
 }
 
-func (s *ReservationService) GetAllReservations() ([] models.Reservation, error){
-	return s.repo.GetAllReservations()
+func (s *ReservationService) GetAllReservations(search, status, date string, limit, offset int) ([] models.Reservation, error){
+	return s.repo.GetAllReservations(search, status, date, limit, offset)
 }
 
 func (s *ReservationService) CreateReservation(d *models.Reservation) (*models.Reservation, error) {

@@ -16,7 +16,7 @@ func NewReservationRepository(db *pgxpool.Pool) *ReservationRepository {
 	return &ReservationRepository{DB: db}
 }
 
-func (r *ReservationRepository) GetAllReservations() ([]models.Reservation, error) {
+func (r *ReservationRepository) GetAllReservations(search string, status string, date string, limit int, offset int) ([]models.Reservation, error) {
 	query := `SELECT 
 	reservation_id,
 	user_id,
@@ -30,8 +30,18 @@ func (r *ReservationRepository) GetAllReservations() ([]models.Reservation, erro
 	special_requests,
 	status,
 	created_at,
-	updated_at FROM reservations`
-	rows, err := r.DB.Query(context.Background(), query)
+	updated_at FROM reservations
+	  WHERE 
+            ($1 = '' OR 
+                reservation_person_name ILIKE '%' || $1 || '%' OR
+                reservation_person_email ILIKE '%' || $1 || '%' OR
+                reservation_person_mobile_number ILIKE '%' || $1 || '%')
+        AND ($2 = '' OR LOWER(status) = LOWER($2))
+        AND ($3 = '' OR reservation_date = $3)
+        ORDER BY created_at DESC
+        LIMIT $4 OFFSET $5
+	`
+	rows, err := r.DB.Query(context.Background(), query , search, status, date, limit, offset)
 	if err != nil {
 		log.Println("❌ Query error:", err)
 		return nil, err
