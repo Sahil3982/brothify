@@ -1,8 +1,8 @@
 package router
 
 import (
-	"net/http"
 	"github.com/brothify/internal/helpers"
+	"net/http"
 )
 
 type Category struct {

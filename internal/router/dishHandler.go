@@ -92,7 +92,6 @@ func (h *DishHandler) createDish(w http.ResponseWriter, r *http.Request) {
 	d.PRICE = price
 	d.DISHURL = &dish_url
 
-
 	createdDish, err := h.service.CreateDish(&d)
 	if err != nil {
 		http.Error(w, "Failed to create dish", http.StatusInternalServerError)

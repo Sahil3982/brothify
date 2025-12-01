@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"log"
 
 	"github.com/brothify/internal/models"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,25 +16,112 @@ func NewReservationRepository(db *pgxpool.Pool) *ReservationRepository {
 	return &ReservationRepository{DB: db}
 }
 
+func (r *ReservationRepository) GetAllReservations() ([]models.Reservation, error) {
+	query := `SELECT 
+	reservation_id,
+	user_id,
+	table_number,
+	reservation_person_name,
+	reservation_person_email,
+	reservation_person_mobile_number,
+	number_of_guests,
+	reservation_time,
+	reservation_date,
+	special_requests,
+	status,
+	created_at,
+	updated_at FROM reservations`
+	rows, err := r.DB.Query(context.Background(), query)
+	if err != nil {
+		log.Println("❌ Query error:", err)
+		return nil, err
+	}
+	defer rows.Close()
+	var reservations []models.Reservation
+
+	for rows.Next() {
+		var res models.Reservation
+		err := rows.Scan(
+			&res.ID,
+			&res.USERID,
+			&res.TABLENUMBER,
+			&res.RESERVATIONPERSONNAME,
+			&res.RESERVATIONPERSONEMAIL,
+			&res.RESERVATIONPERSONMOBILENUMBER, // 5 mobile number
+			&res.NUMBEROFGUESTS,                // 6 guests
+			&res.RESERVATIONTIME,               // 7 reservation_time
+			&res.RESERVATIONDATE,               // 8 reservation_date
+			&res.SPECIALREQUESTS,               // 9 special_requests
+			&res.STATUS,                        // 10 status
+			&res.CREATEDAT,                     // 11 created_at
+			&res.UPDATEDAT,                     // 12 updated_at
+		)
+
+		if err != nil {
+			return nil, err
+		}
+		dishQuery := `SELECT d.dish_id, d.dish_name, d.cat_id, d.price, d.description, d.dish_url, d.availability, d.rating, d.highlight FROM reservation_dishes rd JOIN dishes d ON rd.dish_id = d.dish_id WHERE rd.reservation_id = $1`
+		dishRows, err := r.DB.Query(context.Background(), dishQuery, res.ID)
+		if err != nil {
+			return nil, err
+		}
+		var dishes []models.Dish
+		for dishRows.Next() {
+			var d models.Dish
+			err := dishRows.Scan(
+				&d.ID,
+				&d.NAME,
+				&d.CATID,
+				&d.PRICE,
+				&d.DESCRIPTION,
+				&d.DISHURL,
+				&d.AVAILABILITY,
+				&d.RATING,
+				&d.HIGHLIGHT,
+			)
+			if err != nil {
+				return nil, err
+			}
+
+			dishes = append(dishes, d)
+
+		}
+		dishRows.Close()
+		res.DISHDETAILS = dishes
+		reservations = append(reservations, res)
+
+	}
+	return reservations, nil
+
+}
+
 func (r *ReservationRepository) CreateReservation(d *models.Reservation) (*models.Reservation, error) {
 	query := `INSERT INTO reservations
-	 (user_id, table_number, reservation_person_name, reservation_person_email,
-	  reservation_person_mobile_number, number_of_guests, reservation_time,
-	  special_requests, status)
-	VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-	RETURNING 
-	    reservation_id,
-	    user_id,
-	    table_number,
-	    reservation_person_name,
-	    reservation_person_email,
-	    reservation_person_mobile_number,
-	    number_of_guests,
-	    reservation_time,
-	    special_requests,
-	    status,
-	    created_at
-	`
+ (user_id,
+  table_number,
+  reservation_person_name,
+  reservation_person_email,
+  reservation_person_mobile_number,
+  number_of_guests,
+  reservation_time,
+  reservation_date,
+  special_requests,
+  status)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+RETURNING 
+    reservation_id,
+    user_id,
+    table_number,
+    reservation_person_name,
+    reservation_person_email,
+    reservation_person_mobile_number,
+    number_of_guests,
+    reservation_time,
+    reservation_date,
+    special_requests,
+    status,
+    created_at,
+    updated_at`
 
 	row := r.DB.QueryRow(context.Background(), query,
 		d.USERID,
@@ -43,6 +131,7 @@ func (r *ReservationRepository) CreateReservation(d *models.Reservation) (*model
 		d.RESERVATIONPERSONMOBILENUMBER,
 		d.NUMBEROFGUESTS,
 		d.RESERVATIONTIME,
+		d.RESERVATIONDATE,
 		d.SPECIALREQUESTS,
 		d.STATUS,
 	)
@@ -56,10 +145,13 @@ func (r *ReservationRepository) CreateReservation(d *models.Reservation) (*model
 		&d.RESERVATIONPERSONMOBILENUMBER,
 		&d.NUMBEROFGUESTS,
 		&d.RESERVATIONTIME,
+		&d.RESERVATIONDATE,
 		&d.SPECIALREQUESTS,
 		&d.STATUS,
 		&d.CREATEDAT,
+		&d.UPDATEDAT,
 	)
+
 	if err != nil {
 		return nil, err
 	}
@@ -77,4 +169,3 @@ func (r *ReservationRepository) CreateReservation(d *models.Reservation) (*model
 
 	return d, nil
 }
-

@@ -32,7 +32,14 @@ func (h *ReservationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ReservationHandler) GetAllReservations(w http.ResponseWriter, r *http.Request) {
-	// Implementation for fetching all reservations
+	reservations, err := h.service.GetAllReservations()
+	if err != nil {
+		log.Println("Failed to retrieve reservations", err)
+		helpers.Error(w, http.StatusInternalServerError, "Failed to retrieve reservations")
+		return
+	}
+
+	helpers.JSON(w, http.StatusOK, "Reservations fetched successfully", reservations)
 }
 
 func (h *ReservationHandler) CreateReservation(w http.ResponseWriter, r *http.Request) {
@@ -75,7 +82,7 @@ func (h *ReservationHandler) CreateReservation(w http.ResponseWriter, r *http.Re
 	}
 
 	// Call service to create reservation
-	
+
 	reservationData, err := h.service.CreateReservation(&d)
 	if err != nil {
 		log.Panicln("Failed to create reservation", err)
