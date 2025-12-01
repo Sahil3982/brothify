@@ -14,7 +14,8 @@ type Reservation struct {
 	NUMBEROFGUESTS                int       `json:"number_of_guests"`
 	SPECIALREQUESTS               *string   `json:"special_requests"`
 	STATUS                        string    `json:"status"`
-	DISHITEMS                     []int    `json:"dish_items"`
+	DISHITEMS                     []int     `json:"dish_items"`
+	DISHDETAILS                   []Dish    `json:"dish_details"`
 	CREATEDAT                     time.Time `json:"created_at"`
 	UPDATEDAT                     time.Time `json:"updated_at"`
 }

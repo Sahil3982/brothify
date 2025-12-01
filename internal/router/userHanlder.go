@@ -56,11 +56,11 @@ func (h *UserHandler) loginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := map[string]interface{}{
-    "id":    user.ID,
-    "name":  user.NAME,
-    "email": user.EMAIL,
-    "token": token,
-}
+		"id":    user.ID,
+		"name":  user.NAME,
+		"email": user.EMAIL,
+		"token": token,
+	}
 
 	helpers.JSON(w, http.StatusOK, "Login successful", response)
 
