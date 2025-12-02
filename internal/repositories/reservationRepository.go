@@ -41,7 +41,7 @@ func (r *ReservationRepository) GetAllReservations(search string, status string,
         ORDER BY created_at DESC
         LIMIT $4 OFFSET $5
 	`
-	rows, err := r.DB.Query(context.Background(), query , search, status, date, limit, offset)
+	rows, err := r.DB.Query(context.Background(), query, search, status, date, limit, offset)
 	if err != nil {
 		log.Println("❌ Query error:", err)
 		return nil, err
@@ -178,4 +178,83 @@ RETURNING
 	}
 
 	return d, nil
+}
+
+func (r *ReservationRepository) UpdateReservation(d *models.Reservation, id string) (*models.Reservation, error) {
+	query := `
+        UPDATE reservations SET
+            user_id                        = $1,
+            table_number                   = $2,
+            reservation_person_name        = $3,
+            reservation_person_email       = $4,
+            reservation_person_mobile_number = $5,
+            number_of_guests               = $6,
+            reservation_time               = $7,
+            reservation_date               = $8,
+            special_requests               = $9,
+            status                         = $10,
+            updated_at                     = NOW()
+        WHERE reservation_id = $11
+        RETURNING
+            reservation_id,
+            user_id,
+            table_number,
+            reservation_person_name,
+            reservation_person_email,
+            reservation_person_mobile_number,
+            number_of_guests,
+            reservation_time,
+            reservation_date,
+            special_requests,
+            status,
+            created_at,
+            updated_at;
+    `
+
+	var res models.Reservation
+
+	err := r.DB.QueryRow(
+		context.Background(),
+		query,
+		d.USERID,
+		d.TABLENUMBER,
+		d.RESERVATIONPERSONNAME,
+		d.RESERVATIONPERSONEMAIL,
+		d.RESERVATIONPERSONMOBILENUMBER,
+		d.NUMBEROFGUESTS,
+		d.RESERVATIONTIME,
+		d.RESERVATIONDATE,
+		d.SPECIALREQUESTS,
+		d.STATUS,
+		id,
+	).Scan(
+		&res.ID,
+        &res.USERID,
+        &res.TABLENUMBER,
+        &res.RESERVATIONPERSONNAME,
+        &res.RESERVATIONPERSONEMAIL,
+        &res.RESERVATIONPERSONMOBILENUMBER,
+        &res.NUMBEROFGUESTS,
+        &res.RESERVATIONTIME,
+        &res.RESERVATIONDATE,
+        &res.SPECIALREQUESTS,
+        &res.STATUS,
+        &res.CREATEDAT,
+        &res.UPDATEDAT,
+	)
+
+	if err != nil {
+		log.Println("❌ UpdateReservation error:", err)
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+
+
+func (r *ReservationRepository) DeleteReservation(d *models.Reservation, id string) error {
+	query := `DELETE FORM reservations WHERE reservation_id = $1`
+	_, err := r.DB.Exec(context.Background(), query, id)
+	return err
 }
