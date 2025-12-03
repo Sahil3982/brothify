@@ -27,6 +27,10 @@ func (h *ReservationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.GetAllReservations(w, r)
 	case http.MethodPost:
 		h.CreateReservation(w, r)
+	case http.MethodPatch:
+		h.UpdateReservation(w, r)
+	case http.MethodDelete:
+		h.DeleteReservation(w, r)
 	default:
 		http.Error(w, "Invalid request method", http.StatusBadRequest)
 	}
@@ -38,15 +42,15 @@ func (h *ReservationHandler) GetAllReservations(w http.ResponseWriter, r *http.R
 	status := q.Get("status")
 	date := q.Get("date")
 
-	page,_ := strconv.Atoi(q.Get("page"))
-	if page <=0 {
+	page, _ := strconv.Atoi(q.Get("page"))
+	if page <= 0 {
 		page = 1
 	}
-	limit,_:=strconv.Atoi(q.Get("limit"))
+	limit, _ := strconv.Atoi(q.Get("limit"))
 	if limit <= 0 {
 		limit = 10
 	}
-	offset := (page-1) * limit
+	offset := (page - 1) * limit
 
 	reservations, err := h.service.GetAllReservations(search, status, date, limit, offset)
 	if err != nil {
@@ -56,11 +60,11 @@ func (h *ReservationHandler) GetAllReservations(w http.ResponseWriter, r *http.R
 	}
 
 	helpers.JSON(w, http.StatusOK, "Reservations fetched successfully", map[string]interface{}{
-        "page":         page,
-        "limit":        limit,
-        "total_items":  len(reservations),
-        "reservations": reservations,
-    })
+		"page":         page,
+		"limit":        limit,
+		"total_items":  len(reservations),
+		"reservations": reservations,
+	})
 }
 
 func (h *ReservationHandler) CreateReservation(w http.ResponseWriter, r *http.Request) {
@@ -112,4 +116,30 @@ func (h *ReservationHandler) CreateReservation(w http.ResponseWriter, r *http.Re
 	}
 
 	helpers.JSON(w, http.StatusCreated, "Reservation created successfully", reservationData)
+}
+
+func (h *ReservationHandler) UpdateReservation(w http.ResponseWriter, r *http.Request) {
+	var d models.Reservation
+	params := helpers.ExtractIDFromPath(r)
+	data, err := h.service.UpdateReservation(&d, params)
+	if err != nil {
+		log.Println("Reservation not updated", err)
+		helpers.Error(w, http.StatusBadRequest, "Reservation not updated")
+		return 
+	}
+
+	helpers.JSON(w, http.StatusOK, "Reservation Updated successfully", data)
+
+}
+
+func (h *ReservationHandler) DeleteReservation(w http.ResponseWriter, r *http.Request) {
+		var d models.Reservation
+		params := helpers.ExtractIDFromPath(r)
+		err := h.service.DeleteReservation(&d,params)
+		if err != nil {
+			log.Println("Reservation not deleted")
+			helpers.Error(w, http.StatusBadGateway,"Reservation not deleted")
+			return 
+		}
+		helpers.JSON(w,http.StatusOK, "Reservation successfully deleted")
 }
