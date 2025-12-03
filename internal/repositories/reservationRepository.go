@@ -251,8 +251,6 @@ func (r *ReservationRepository) UpdateReservation(d *models.Reservation, id stri
 	return &res, nil
 }
 
-
-
 func (r *ReservationRepository) DeleteReservation(d *models.Reservation, id string) error {
 	query := `DELETE FORM reservations WHERE reservation_id = $1`
 	_, err := r.DB.Exec(context.Background(), query, id)
