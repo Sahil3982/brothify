@@ -17,6 +17,7 @@ func NewRouter(dishHandler *DishHandler, userHandler *UserHandler, reservationHa
 	mux.HandleFunc("/v1/api/category/", dishCategory)
 	mux.HandleFunc("/v1/api/payment/order", helpers.PostMethod(handler.CreateRazorpayOrder))
 	mux.HandleFunc("/v1/api/payment/verify", helpers.PostMethod(handler.VerifyRazorpayPayment))
+	mux.HandleFunc("/v1/api/invoice/:order_id", handler.InvoiceHandler)
 	mux.Handle("/v1/api/dishes/", dishHandler)
 	mux.Handle("/v1/api/login/", userHandler)
 	mux.Handle("/v1/api/reservations/", reservationHandler)
