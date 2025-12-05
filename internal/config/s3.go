@@ -10,6 +10,12 @@ import (
 	"github.com/google/uuid"
 )
 
+var S3 *s3.Client
+
+func InitS3() {
+	S3 = s3.NewFromConfig(AWSConfig)
+}
+
 func UploadImageToS3(file multipart.File, fileHeader *multipart.FileHeader, bucket string) (string, error) {
 	fileKey := uuid.New().String() + "_" + fileHeader.Filename
 	var AWS_REGION = os.Getenv("AWS_REGION")

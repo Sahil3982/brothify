@@ -32,3 +32,5 @@ func ExtractIDFromPath(r *http.Request) string {
 	pathParts := strings.Split(r.URL.Path, "/")
 	return pathParts[len(pathParts)-1]
 }
+
+

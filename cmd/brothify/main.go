@@ -19,6 +19,8 @@ func main() {
 	config.InitAWS()
 	config.InitS3()
 	config.InitSES()
+	config.InitRazorpay()
+
 	if err := database.RunMigration(db); err != nil {
 		log.Fatal("Migration Error:", err)
 	}
