@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/brothify/internal/config"
@@ -22,17 +23,18 @@ func CreateRazorpayOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := map[string] interface{}{
-		"amount" : req.Amount,
+	data := map[string]interface{}{
+		"amount":   req.Amount,
 		"currency": req.Currency,
-		"receipt": req.Receipt,
+		"receipt":  req.Receipt,
 	}
 
-	order,err := config.RazorpayClient.Order.Create(data, nil)
+	order, err := config.RazorpayClient.Order.Create(data, nil)
 	if err != nil {
+		log.Println("Failed to create Razorpay order:", err)
 		helpers.Error(w, http.StatusInternalServerError, "Failed to create order")
 		return
 	}
-	
+
 	helpers.JSON(w, http.StatusOK, "Order created successfully", order)
 }
