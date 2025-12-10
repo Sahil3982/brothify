@@ -128,6 +128,7 @@ func (h *ReservationHandler) CreateReservation(w http.ResponseWriter, r *http.Re
 		helpers.Error(w, http.StatusInternalServerError, "Failed to create reservation")
 		return
 	}
+	
 
 	helpers.JSON(w, http.StatusCreated, "Reservation created successfully", reservationData)
 }

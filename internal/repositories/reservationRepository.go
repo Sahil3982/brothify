@@ -17,7 +17,7 @@ func NewReservationRepository(db *pgxpool.Pool) *ReservationRepository {
 }
 
 func (r *ReservationRepository) GetReservationByID(id string) (*models.Reservation, error) {
-    query := `
+	query := `
         SELECT 
             id, user_id, number_of_guests, reservation_time,
             reservation_person_name, reservation_person_email,
@@ -26,27 +26,26 @@ func (r *ReservationRepository) GetReservationByID(id string) (*models.Reservati
         WHERE id = $1
     `
 
-    var res models.Reservation
-    err := r.DB.QueryRow(context.Background(), query, id).
-        Scan(
-            &res.ID,
-            &res.USERID,
-            &res.NUMBEROFGUESTS,
-            &res.RESERVATIONTIME,
-            &res.RESERVATIONPERSONNAME,
-            &res.RESERVATIONPERSONEMAIL,
-            &res.RESERVATIONPERSONMOBILENUMBER,
-            &res.STATUS,
-            &res.INVOICEURL,
-        )
+	var res models.Reservation
+	err := r.DB.QueryRow(context.Background(), query, id).
+		Scan(
+			&res.ID,
+			&res.USERID,
+			&res.NUMBEROFGUESTS,
+			&res.RESERVATIONTIME,
+			&res.RESERVATIONPERSONNAME,
+			&res.RESERVATIONPERSONEMAIL,
+			&res.RESERVATIONPERSONMOBILENUMBER,
+			&res.STATUS,
+			&res.INVOICEURL,
+		)
 
-    if err != nil {
-        return nil, err
-    }
+	if err != nil {
+		return nil, err
+	}
 
-    return &res, nil
+	return &res, nil
 }
-
 
 func (r *ReservationRepository) GetAllReservations(search string, status string, date string, limit int, offset int) ([]models.Reservation, error) {
 	query := `SELECT 
@@ -261,18 +260,18 @@ func (r *ReservationRepository) UpdateReservation(d *models.Reservation, id stri
 		id,
 	).Scan(
 		&res.ID,
-        &res.USERID,
-        &res.TABLENUMBER,
-        &res.RESERVATIONPERSONNAME,
-        &res.RESERVATIONPERSONEMAIL,
-        &res.RESERVATIONPERSONMOBILENUMBER,
-        &res.NUMBEROFGUESTS,
-        &res.RESERVATIONTIME,
-        &res.RESERVATIONDATE,
-        &res.SPECIALREQUESTS,
-        &res.STATUS,
-        &res.CREATEDAT,
-        &res.UPDATEDAT,
+		&res.USERID,
+		&res.TABLENUMBER,
+		&res.RESERVATIONPERSONNAME,
+		&res.RESERVATIONPERSONEMAIL,
+		&res.RESERVATIONPERSONMOBILENUMBER,
+		&res.NUMBEROFGUESTS,
+		&res.RESERVATIONTIME,
+		&res.RESERVATIONDATE,
+		&res.SPECIALREQUESTS,
+		&res.STATUS,
+		&res.CREATEDAT,
+		&res.UPDATEDAT,
 	)
 
 	if err != nil {
@@ -284,10 +283,11 @@ func (r *ReservationRepository) UpdateReservation(d *models.Reservation, id stri
 }
 
 func (r *ReservationRepository) DeleteReservation(d *models.Reservation, id string) error {
-	query := `DELETE FORM reservations WHERE reservation_id = $1`
+	query := `DELETE FROM reservations WHERE reservation_id = $1`
 	_, err := r.DB.Exec(context.Background(), query, id)
 	return err
 }
+
 func (r *ReservationRepository) SaveInvoiceURL(reservationID int, paymentID, signature, invoiceURL string) error {
 	_, err := r.DB.Exec(context.Background(),
 		`UPDATE reservations 
@@ -301,4 +301,3 @@ func (r *ReservationRepository) SaveInvoiceURL(reservationID int, paymentID, sig
 	)
 	return err
 }
-
