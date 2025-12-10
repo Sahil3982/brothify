@@ -15,6 +15,11 @@ func NewReservationService(repo *repositories.ReservationRepository) *Reservatio
 	return &ReservationService{repo: repo}
 }
 
+func (s *ReservationService) GetReservationByID(id string) (*models.Reservation, error) {
+    return s.repo.GetReservationByID(id)
+}
+
+
 func (s *ReservationService) GetAllReservations(search, status, date string, limit, offset int) ([] models.Reservation, error){
 	return s.repo.GetAllReservations(search, status, date, limit, offset)
 }

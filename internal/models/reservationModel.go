@@ -17,5 +17,9 @@ type Reservation struct {
 	DISHITEMS                     []int     `json:"dish_items"`
 	DISHDETAILS                   []Dish    `json:"dish_details"`
 	CREATEDAT                     time.Time `json:"created_at"`
+	PAYEMENTID                    string    `json:"payment_id"`
+	SIGNATURE                     string    `json:"signature"`
+	PAYMENTSTATUS                 string    `json:"payment_status"`
+	INVOICEURL                    string    `json:"invoice_url"`
 	UPDATEDAT                     time.Time `json:"updated_at"`
 }

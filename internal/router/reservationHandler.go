@@ -21,9 +21,13 @@ func NewReservationHandler(service *services.ReservationService) *ReservationHan
 }
 
 func (h *ReservationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
+	id := helpers.ExtractIDFromPath(r)
 	switch r.Method {
 	case http.MethodGet:
+		if id != "" {
+			h.GetReservationByID(w, r)
+			return
+		}
 		h.GetAllReservations(w, r)
 	case http.MethodPost:
 		h.CreateReservation(w, r)
@@ -34,6 +38,16 @@ func (h *ReservationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.Error(w, "Invalid request method", http.StatusBadRequest)
 	}
+}
+func (h *ReservationHandler) GetReservationByID(w http.ResponseWriter, r *http.Request) {
+	params := helpers.ExtractIDFromPath(r)
+	data, err := h.service.GetReservationByID(params)
+	if err != nil {
+		log.Println("Failed to retrieve reservation", err)
+		helpers.Error(w, http.StatusInternalServerError, "Failed to retrieve reservation")
+		return
+	}
+	helpers.JSON(w, http.StatusOK, "Reservation fetched successfully", data)
 }
 
 func (h *ReservationHandler) GetAllReservations(w http.ResponseWriter, r *http.Request) {
@@ -125,7 +139,7 @@ func (h *ReservationHandler) UpdateReservation(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		log.Println("Reservation not updated", err)
 		helpers.Error(w, http.StatusBadRequest, "Reservation not updated")
-		return 
+		return
 	}
 
 	helpers.JSON(w, http.StatusOK, "Reservation Updated successfully", data)
@@ -133,13 +147,13 @@ func (h *ReservationHandler) UpdateReservation(w http.ResponseWriter, r *http.Re
 }
 
 func (h *ReservationHandler) DeleteReservation(w http.ResponseWriter, r *http.Request) {
-		var d models.Reservation
-		params := helpers.ExtractIDFromPath(r)
-		err := h.service.DeleteReservation(&d,params)
-		if err != nil {
-			log.Println("Reservation not deleted")
-			helpers.Error(w, http.StatusBadGateway,"Reservation not deleted")
-			return 
-		}
-		helpers.JSON(w,http.StatusOK, "Reservation successfully deleted")
+	var d models.Reservation
+	params := helpers.ExtractIDFromPath(r)
+	err := h.service.DeleteReservation(&d, params)
+	if err != nil {
+		log.Println("Reservation not deleted")
+		helpers.Error(w, http.StatusBadGateway, "Reservation not deleted")
+		return
+	}
+	helpers.JSON(w, http.StatusOK, "Reservation successfully deleted")
 }

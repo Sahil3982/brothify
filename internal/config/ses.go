@@ -44,3 +44,8 @@ func SendEmail(to string, subject string, body string) error {
 
 	return nil
 }
+
+func SendEmailWithInvoice(to string, htmlContent string) error {
+	subject := "Your Invoice from Brothify"
+	return SendEmail(to, subject, htmlContent)
+}

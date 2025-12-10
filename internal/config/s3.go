@@ -36,3 +36,22 @@ func UploadImageToS3(file multipart.File, fileHeader *multipart.FileHeader, buck
 	url := fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", bucket, AWS_REGION, fileKey)
 	return url, nil
 }
+
+func UploadInvoiceToS3(htmlContent string, resID int) (string, error) {
+	bucket := os.Getenv("S3_INVOICE_BUCKET")
+	fileKey := fmt.Sprintf("invoices/reservation_%d.html", resID)
+	contentType := "text/html"
+
+	_, err := S3.PutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket:      &bucket,
+		Key:         &fileKey,
+		Body:        os.NewFile(0, htmlContent),
+		ContentType: &contentType,
+	})
+	if err != nil {
+		return "", err
+	}
+	var AWS_REGION = os.Getenv("AWS_REGION")
+	url := fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", bucket, AWS_REGION, fileKey)
+	return url, nil
+}

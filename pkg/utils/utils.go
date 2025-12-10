@@ -19,4 +19,3 @@ func ValidateMobileNumber(mobile string) bool {
 	}
 	return true
 }
-

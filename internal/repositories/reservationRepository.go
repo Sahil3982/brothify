@@ -16,6 +16,38 @@ func NewReservationRepository(db *pgxpool.Pool) *ReservationRepository {
 	return &ReservationRepository{DB: db}
 }
 
+func (r *ReservationRepository) GetReservationByID(id string) (*models.Reservation, error) {
+    query := `
+        SELECT 
+            id, user_id, number_of_guests, reservation_time,
+            reservation_person_name, reservation_person_email,
+            reservation_person_mobile_number, status, invoice_url
+        FROM reservations 
+        WHERE id = $1
+    `
+
+    var res models.Reservation
+    err := r.DB.QueryRow(context.Background(), query, id).
+        Scan(
+            &res.ID,
+            &res.USERID,
+            &res.NUMBEROFGUESTS,
+            &res.RESERVATIONTIME,
+            &res.RESERVATIONPERSONNAME,
+            &res.RESERVATIONPERSONEMAIL,
+            &res.RESERVATIONPERSONMOBILENUMBER,
+            &res.STATUS,
+            &res.INVOICEURL,
+        )
+
+    if err != nil {
+        return nil, err
+    }
+
+    return &res, nil
+}
+
+
 func (r *ReservationRepository) GetAllReservations(search string, status string, date string, limit int, offset int) ([]models.Reservation, error) {
 	query := `SELECT 
 	reservation_id,
@@ -256,3 +288,17 @@ func (r *ReservationRepository) DeleteReservation(d *models.Reservation, id stri
 	_, err := r.DB.Exec(context.Background(), query, id)
 	return err
 }
+func (r *ReservationRepository) SaveInvoiceURL(reservationID int, paymentID, signature, invoiceURL string) error {
+	_, err := r.DB.Exec(context.Background(),
+		`UPDATE reservations 
+         SET payment_id = $1,
+             signature = $2,
+             payment_status = 'PAID',
+             invoice_url = $3,
+             updated_at = NOW()
+         WHERE reservation_id = $4`,
+		paymentID, signature, invoiceURL, reservationID,
+	)
+	return err
+}
+

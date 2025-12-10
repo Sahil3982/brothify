@@ -11,6 +11,7 @@ import (
 	"github.com/brothify/internal/router"
 	"github.com/brothify/internal/services"
 	"github.com/brothify/pkg/database"
+	"github.com/brothify/internal/handler"
 )
 
 func main() {
@@ -28,6 +29,7 @@ func main() {
 	dishRepo := repositories.NewDishRepository(db)
 	userRepo := repositories.NewUserRepository(db)
 	reservationRepo := repositories.NewReservationRepository(db)
+	paymentHandler := handler.NewPaymentHandler(reservationRepo)
 
 	userService := services.NewUserService(userRepo)
 	dishService := services.NewDishService(dishRepo)
@@ -37,7 +39,7 @@ func main() {
 	dishHandler := router.NewDishHandler(dishService)
 	reservationHandler := router.NewReservationHandler(reservationService)
 
-	mux := router.NewRouter(dishHandler, userHandler, reservationHandler)
+	mux := router.NewRouter(dishHandler, userHandler, reservationHandler, paymentHandler)
 	handler := middleware.CorsMiddleware(mux)
 	port := os.Getenv("PORT")
 	if port == "" {
