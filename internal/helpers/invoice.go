@@ -21,3 +21,17 @@ func BuildInvoiceHTML(res *models.Reservation) (string, error) {
 
 	return buf.String(), nil
 }
+
+func BuildEmailReservationHTML(res *models.Reservation) (string, error) {
+	tmpl, err := template.ParseFiles("templates/reservationconfirmemail.html")
+	if err != nil {
+		return "", err
+	}
+	var buf bytes.Buffer
+	err = tmpl.Execute(&buf, res)
+	if err != nil {
+		return "", err
+	}	
+	return buf.String(), nil
+}
+	

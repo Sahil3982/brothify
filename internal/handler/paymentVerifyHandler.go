@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -30,7 +31,6 @@ func NewPaymentHandler(repo *repositories.ReservationRepository) *PaymentHandler
 	return &PaymentHandler{ResRepo: repo}
 }
 
-
 func (h *PaymentHandler) VerifyRazorpayPayment(w http.ResponseWriter, r *http.Request) {
 	var req VerifyPaymentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -49,7 +49,7 @@ func (h *PaymentHandler) VerifyRazorpayPayment(w http.ResponseWriter, r *http.Re
 	hmacObj := hmac.New(sha256.New, []byte(secret))
 	hmacObj.Write([]byte(msg))
 	expectedSignature := hex.EncodeToString(hmacObj.Sum(nil))
-	
+
 	if !hmac.Equal([]byte(expectedSignature), []byte(req.RazorpaySignature)) {
 		helpers.Error(w, http.StatusBadRequest, "Invalid signature")
 		return
@@ -63,7 +63,9 @@ func (h *PaymentHandler) VerifyRazorpayPayment(w http.ResponseWriter, r *http.Re
 	}
 
 	html, err := helpers.BuildInvoiceHTML(res)
+	log.Println("Generated Invoice HTML:", html)
 	if err != nil {
+		log.Println("Error generating invoice HTML:", err)
 		helpers.Error(w, http.StatusInternalServerError, "Failed to generate invoice")
 		return
 	}
@@ -82,10 +84,19 @@ func (h *PaymentHandler) VerifyRazorpayPayment(w http.ResponseWriter, r *http.Re
 	}
 
 	// Send Email
-	if err := config.SendEmailWithInvoice(req.Email, html); err != nil {
+	emailHTML, err := helpers.BuildEmailReservationHTML(res)
+	log.Println("Generated Email HTML:", emailHTML)
+	if err != nil {
+		helpers.Error(w, http.StatusInternalServerError, "Failed to build reservation email")
+		return
+	}
+
+	// Step 7 — Send Email
+	if err := config.SendEmailWithInvoice(req.Email, emailHTML); err != nil {
+		log.Println("Error sending email:", err)
 		helpers.Error(w, http.StatusInternalServerError, "Failed to send email")
 		return
 	}
 
-	helpers.JSON(w, http.StatusOK,"Payment verified successfully")
+	helpers.JSON(w, http.StatusOK, "Payment verified successfully")
 }

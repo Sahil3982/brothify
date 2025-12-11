@@ -16,6 +16,23 @@ func NewDishRepository(db *pgxpool.Pool) *DishRepository {
 	return &DishRepository{DB: db}
 }
 
+func (r *DishRepository) GetDishByID(id int) (*models.Dish, error) {
+	ctx := context.Background()
+	query := `SELECT dish_id, dish_name, cat_id, price, description, dish_url, availability, rating, highlight, created_at, updated_at 
+			  FROM dishes WHERE dish_id = $1`
+	var d models.Dish
+	err := r.DB.QueryRow(ctx, query, id).Scan(
+		&d.ID, &d.NAME, &d.CATID, &d.PRICE, &d.DESCRIPTION,
+		&d.DISHURL, &d.AVAILABILITY, &d.RATING, &d.HIGHLIGHT,
+		&d.CREATEDAT, &d.UPDATEDAT,
+	)
+	if err != nil {
+		log.Println("❌ GetDishByID error:", err)
+		return nil, err
+	}	
+	return &d, nil
+}
+
 func (r *DishRepository) GetAllDishes() ([]models.Dish, error) {
 	ctx := context.Background()
 	rows, err := r.DB.Query(ctx, `

@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -46,6 +47,7 @@ func SendEmail(to string, subject string, body string) error {
 }
 
 func SendEmailWithInvoice(to string, htmlContent string) error {
+	log.Println("Sending email to:", to)
 	subject := "Your Invoice from Brothify"
 	return SendEmail(to, subject, htmlContent)
 }

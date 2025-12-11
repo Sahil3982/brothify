@@ -41,6 +41,7 @@ func (h *ReservationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 func (h *ReservationHandler) GetReservationByID(w http.ResponseWriter, r *http.Request) {
 	params := helpers.ExtractIDFromPath(r)
+	log.Println("Extracted ID:", params)
 	data, err := h.service.GetReservationByID(params)
 	if err != nil {
 		log.Println("Failed to retrieve reservation", err)
@@ -119,6 +120,19 @@ func (h *ReservationHandler) CreateReservation(w http.ResponseWriter, r *http.Re
 		helpers.Error(w, http.StatusBadRequest, "Reservation person mobile number is required")
 		return
 	}
+
+	var amount float64
+	for _, dishID := range d.DISHITEMS {
+		dish, err := h.service.GetDishPrice(dishID)		
+		if err != nil {
+			log.Println("Failed to fetch dish for reservation:", err)		
+			helpers.Error(w, http.StatusInternalServerError, "Failed to fetch dish for reservation")
+			return
+		}			
+		amount += float64(dish)
+	}
+	d.AMOUNT = amount
+
 
 	// Call service to create reservation
 

@@ -35,3 +35,8 @@ func (s *ReservationService) UpdateReservation(d *models.Reservation, params str
 func (s *ReservationService) DeleteReservation (d *models.Reservation, params string) error {
 	return s.repo.DeleteReservation(d,params)
 }
+
+func (s *ReservationService) GetDishPrice(dishID int) (float64, error) {
+	return s.repo.GetDishPriceByID(dishID)
+}
+

@@ -44,6 +44,11 @@ func RunMigration(db *pgxpool.Pool) error {
 			number_of_guests INT,
 			special_requests TEXT,
 			status VARCHAR(20),
+			amount NUMERIC(10,2),
+			payment_id VARCHAR(255),
+			signature VARCHAR(255),
+			payment_status VARCHAR(50),
+			invoice_url TEXT,
 			created_at TIMESTAMP DEFAULT NOW(),
 			updated_at TIMESTAMP DEFAULT NOW()
 		);`,

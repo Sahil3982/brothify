@@ -35,20 +35,24 @@ func (h *DishHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *DishHandler) getAllDishes(w http.ResponseWriter, r *http.Request) {
+func (h *DishHandler) GetDishById(w http.ResponseWriter, r *http.Request) {
 	id := helpers.ExtractIDFromPath(r)
 
-	dishes, err := h.service.GetAllDishes()
-
-	dishID, _ := strconv.Atoi(id)
-	if id != "" {
-		for _, dish := range dishes {
-			if dish.ID == dishID {
-				helpers.JSON(w, http.StatusOK, "dish fetch successfully", dish)
-				return
-			}
-		}
+	dishID, err := strconv.Atoi(id)
+	if err != nil {
+		helpers.Error(w, http.StatusBadRequest, "Invalid dish ID")
+		return
 	}
+	dish, err := h.service.GetDishByID(dishID)
+	if err != nil {
+		helpers.Error(w, http.StatusInternalServerError, "Failed to retrieve dish")
+		return
+	}
+	helpers.JSON(w, http.StatusOK, "Dish fetched successfully", dish)
+}
+
+func (h *DishHandler) getAllDishes(w http.ResponseWriter, r *http.Request) {
+	dishes, err := h.service.GetAllDishes()	
 	if err != nil {
 		helpers.Error(w, http.StatusInternalServerError, "Failed to retrieve dishes")
 		return

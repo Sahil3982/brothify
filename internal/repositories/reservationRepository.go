@@ -17,32 +17,74 @@ func NewReservationRepository(db *pgxpool.Pool) *ReservationRepository {
 }
 
 func (r *ReservationRepository) GetReservationByID(id string) (*models.Reservation, error) {
+
 	query := `
         SELECT 
-            id, user_id, number_of_guests, reservation_time,
-            reservation_person_name, reservation_person_email,
-            reservation_person_mobile_number, status, invoice_url
+            reservation_id,
+            user_id,
+            table_number,
+            reservation_person_name,
+            reservation_person_email,
+            reservation_person_mobile_number,
+            number_of_guests,
+            reservation_time,
+            reservation_date,
+            special_requests,
+            status,
+            created_at,
+            updated_at
         FROM reservations 
-        WHERE id = $1
+        WHERE reservation_id = $1
     `
 
 	var res models.Reservation
-	err := r.DB.QueryRow(context.Background(), query, id).
-		Scan(
-			&res.ID,
-			&res.USERID,
-			&res.NUMBEROFGUESTS,
-			&res.RESERVATIONTIME,
-			&res.RESERVATIONPERSONNAME,
-			&res.RESERVATIONPERSONEMAIL,
-			&res.RESERVATIONPERSONMOBILENUMBER,
-			&res.STATUS,
-			&res.INVOICEURL,
-		)
+
+	err := r.DB.QueryRow(context.Background(), query, id).Scan(
+		&res.ID,
+		&res.USERID,
+		&res.TABLENUMBER,
+		&res.RESERVATIONPERSONNAME,
+		&res.RESERVATIONPERSONEMAIL,
+		&res.RESERVATIONPERSONMOBILENUMBER,
+		&res.NUMBEROFGUESTS,
+		&res.RESERVATIONTIME,
+		&res.RESERVATIONDATE,
+		&res.SPECIALREQUESTS,
+		&res.STATUS,
+		&res.CREATEDAT,
+		&res.UPDATEDAT,
+	)
 
 	if err != nil {
+		log.Println("❌ GetReservationByID error:", err)
 		return nil, err
 	}
+
+	dishQuery := `SELECT d.dish_id, d.dish_name, d.cat_id, d.price, d.description, d.dish_url, d.availability, d.rating, d.highlight 
+              FROM reservation_dishes rd 
+              JOIN dishes d ON rd.dish_id = d.dish_id 
+              WHERE rd.reservation_id = $1`
+	dishRows, _ := r.DB.Query(context.Background(), dishQuery, res.ID)
+
+	var dishes []models.Dish
+	for dishRows.Next() {
+		var d models.Dish
+		dishRows.Scan(
+			&d.ID,
+			&d.NAME,
+			&d.CATID,
+			&d.PRICE,
+			&d.DESCRIPTION,
+			&d.DISHURL,
+			&d.AVAILABILITY,
+			&d.RATING,
+			&d.HIGHLIGHT,
+		)
+		dishes = append(dishes, d)
+	}
+	dishRows.Close()
+
+	res.DISHDETAILS = dishes
 
 	return &res, nil
 }
@@ -287,6 +329,19 @@ func (r *ReservationRepository) DeleteReservation(d *models.Reservation, id stri
 	_, err := r.DB.Exec(context.Background(), query, id)
 	return err
 }
+
+func (r *ReservationRepository) GetDishPriceByID(id int) (float64, error) {
+	var price float64
+	err := r.DB.QueryRow(context.Background(),
+		"SELECT price FROM dishes WHERE dish_id = $1", id,
+	).Scan(&price)
+
+	if err != nil {
+		return 0, err
+	}
+	return price, nil
+}
+
 
 func (r *ReservationRepository) SaveInvoiceURL(reservationID int, paymentID, signature, invoiceURL string) error {
 	_, err := r.DB.Exec(context.Background(),

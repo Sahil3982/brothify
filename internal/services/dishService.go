@@ -13,6 +13,10 @@ func NewDishService(repo *repositories.DishRepository) *DishService {
 	return &DishService{repo: repo}
 }
 
+func (s *DishService) GetDishByID(id int) (*models.Dish, error) {
+	return s.repo.GetDishByID(id)
+}
+
 func (s *DishService) GetAllDishes() ([]models.Dish, error) {
 	return s.repo.GetAllDishes()
 }
