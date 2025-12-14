@@ -10,9 +10,9 @@ import (
 )
 
 type CreateOrderRequest struct {
-	Amount   int    `json:"amount"`
-	Currency string `json:"currency"`
-	Receipt  string `json:"receipt"`
+	Amount        int    `json:"amount"`
+	Currency      string `json:"currency"`
+	ReservationID string `json:"reservation_id"`
 }
 
 func CreateRazorpayOrder(w http.ResponseWriter, r *http.Request) {
@@ -24,9 +24,9 @@ func CreateRazorpayOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]interface{}{
-		"amount":   req.Amount,
-		"currency": req.Currency,
-		"receipt":  req.Receipt,
+		"amount":         req.Amount,
+		"currency":       req.Currency,
+		"reservation_id": req.ReservationID,
 	}
 
 	order, err := config.RazorpayClient.Order.Create(data, nil)
