@@ -13,7 +13,7 @@ type Reservation struct {
 	RESERVATIONDATE               string    `json:"reservation_date"`
 	NUMBEROFGUESTS                int       `json:"number_of_guests"`
 	SPECIALREQUESTS               *string   `json:"special_requests"`
-	STATUS                        string    `json:"status"`
+	STATUS                        string    `json:"reservation_status"`
 	DISHITEMS                     []int     `json:"dish_items"`
 	DISHDETAILS                   []Dish    `json:"dish_details"`
 	AMOUNT                        float64   `json:"amount"`

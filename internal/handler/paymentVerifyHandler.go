@@ -37,13 +37,15 @@ func (h *PaymentHandler) VerifyRazorpayPayment(w http.ResponseWriter, r *http.Re
 		helpers.Error(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
-
+if os.Getenv("SKIP_SIGNATURE_CHECK") == "true" {
+		log.Println("⚠️ Skipping Razorpay signature verification (development only)")
+	} else {
 	secret := os.Getenv("RAZORPAY_KEY_SECRET")
 	if secret == "" {
 		helpers.Error(w, http.StatusInternalServerError, "Payment configuration error")
 		return
 	}
-
+	
 	// Verify signature
 	msg := req.RazorpayOrderID + "|" + req.RazorpayPaymentID
 	hmacObj := hmac.New(sha256.New, []byte(secret))
@@ -54,13 +56,15 @@ func (h *PaymentHandler) VerifyRazorpayPayment(w http.ResponseWriter, r *http.Re
 		helpers.Error(w, http.StatusBadRequest, "Invalid signature")
 		return
 	}
-
+	}
 	// Convert reservation ID to string for the repository method
 	res, err := h.ResRepo.GetReservationByID(strconv.Itoa(req.ReservationID))
 	if err != nil {
 		helpers.Error(w, http.StatusNotFound, "Reservation not found")
 		return
 	}
+	log.Println("Fetched Reservation:", res)
+
 
 	html, err := helpers.BuildInvoiceHTML(res)
 	log.Println("Generated Invoice HTML:", html)
@@ -98,5 +102,5 @@ func (h *PaymentHandler) VerifyRazorpayPayment(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	helpers.JSON(w, http.StatusOK, "Payment verified successfully")
+	helpers.JSON(w, http.StatusOK, "Payment verified successfully",res)
 }

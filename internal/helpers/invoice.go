@@ -3,19 +3,22 @@ package helpers
 import (
 	"bytes"
 	"html/template"
+	"log"
 
 	"github.com/brothify/internal/models"
 )
 
 func BuildInvoiceHTML(res *models.Reservation) (string, error) {
-	tmpl, err := template.ParseFiles("templates/invoice.html")
+	tmpl, err := template.ParseFiles("internal/templates/invoice.html")
 	if err != nil {
+		log.Println("Error parsing invoice template:", err)
 		return "", err
 	}
 
 	var buf bytes.Buffer
 	err = tmpl.Execute(&buf, res)
 	if err != nil {
+		log.Println("Error executing invoice template:", err)
 		return "", err
 	}
 

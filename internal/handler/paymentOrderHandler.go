@@ -22,11 +22,12 @@ func CreateRazorpayOrder(w http.ResponseWriter, r *http.Request) {
 		helpers.Error(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
+	log.Printf("CreateOrderRequest: %+v", req)
 
 	data := map[string]interface{}{
 		"amount":         req.Amount,
 		"currency":       req.Currency,
-		"reservation_id": req.ReservationID,
+		"receipt": req.ReservationID,
 	}
 
 	order, err := config.RazorpayClient.Order.Create(data, nil)
