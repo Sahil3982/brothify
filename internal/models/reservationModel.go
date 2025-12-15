@@ -1,9 +1,13 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Reservation struct {
-	ID                            int       `json:"reservation_id"`
+	ID                            uuid.UUID `json:"reservation_id"`
 	USERID                        int       `json:"user_id"`
 	TABLENUMBER                   int       `json:"table_number"`
 	RESERVATIONPERSONNAME         string    `json:"reservation_person_name"`

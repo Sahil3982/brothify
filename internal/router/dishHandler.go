@@ -10,6 +10,7 @@ import (
 	"github.com/brothify/internal/helpers"
 	"github.com/brothify/internal/models"
 	"github.com/brothify/internal/services"
+	"github.com/google/uuid"
 )
 
 type DishHandler struct {
@@ -112,9 +113,10 @@ func (h *DishHandler) updateDish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dishID, err := strconv.Atoi(id)
+	// Ensure the dish ID is set from the path
+	parsedID, err := uuid.Parse(id)
 	if err != nil {
-		helpers.Error(w, http.StatusBadRequest, "Invalid dish ID")
+		helpers.Error(w, http.StatusBadRequest, "Invalid dish ID format")
 		return
 	}
 
@@ -137,7 +139,7 @@ func (h *DishHandler) updateDish(w http.ResponseWriter, r *http.Request) {
 
 	var exists bool
 	for _, dish := range allDishes {
-		if dish.ID == dishID {
+		if dish.ID == parsedID {
 			exists = true
 			break
 		}
@@ -147,9 +149,8 @@ func (h *DishHandler) updateDish(w http.ResponseWriter, r *http.Request) {
 		helpers.Error(w, http.StatusNotFound, "Dish not found with given ID")
 		return
 	}
-
-	// Ensure the dish ID is set from the path
-	d.ID = dishID
+	
+	d.ID = parsedID
 
 	// ✅ Proceed to update
 	if err := h.service.UpdateDish(id, &d); err != nil {

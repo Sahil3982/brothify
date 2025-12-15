@@ -1,9 +1,13 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Dish struct {
-	ID           int       `json:"dish_id"`
+	ID           uuid.UUID `json:"dish_id"`
 	NAME         string    `json:"dish_name"`
 	CATID        *int      `json:"cat_id"`
 	PRICE        float64   `json:"price"`
