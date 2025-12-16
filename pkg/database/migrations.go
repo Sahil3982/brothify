@@ -10,7 +10,7 @@ import (
 func RunMigration(db *pgxpool.Pool) error {
 	queries := []string{
 		`CREATE TABLE IF NOT EXISTS users (
-   			 user_id SERIAL PRIMARY KEY,
+   			 user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
    			 name VARCHAR(255) NOT NULL,
   			 email VARCHAR(255) UNIQUE NOT NULL,
    			 password TEXT NOT NULL,
@@ -19,12 +19,12 @@ func RunMigration(db *pgxpool.Pool) error {
 		);
 		`,
 		`CREATE TABLE IF NOT EXISTS dishes (
-    		dish_id SERIAL PRIMARY KEY,
+			dish_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     		dish_name VARCHAR(255) NOT NULL,
     		cat_id INT,
     		price NUMERIC(10,2) NOT NULL,
     		description TEXT,
-    		dish_url TEXT,
+    		dish_url TEXT, 
     		availability BOOLEAN DEFAULT TRUE,
     		rating NUMERIC(3,2) DEFAULT 0,
     		highlight BOOLEAN DEFAULT FALSE,
@@ -33,7 +33,7 @@ func RunMigration(db *pgxpool.Pool) error {
 		);
 `,
 		`CREATE TABLE IF NOT EXISTS reservations (
-			reservation_id SERIAL PRIMARY KEY,
+			reservation_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 			user_id INT NOT NULL REFERENCES users(user_id),
 			table_number INT NOT NULL,
 			reservation_person_name VARCHAR(255),
@@ -43,7 +43,7 @@ func RunMigration(db *pgxpool.Pool) error {
 			reservation_date VARCHAR(50),
 			number_of_guests INT,
 			special_requests TEXT,
-			status VARCHAR(20),
+			status VARCHAR(20), 
 			amount NUMERIC(10,2),
 			payment_id VARCHAR(255),
 			signature VARCHAR(255),
@@ -53,9 +53,9 @@ func RunMigration(db *pgxpool.Pool) error {
 			updated_at TIMESTAMP DEFAULT NOW()
 		);`,
 		` CREATE TABLE IF NOT EXISTS reservation_dishes (
-			id SERIAL PRIMARY KEY,
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 			reservation_id INT NOT NULL REFERENCES reservations(reservation_id) ON DELETE CASCADE,
-			dish_id INT NOT NULL REFERENCES dishes(dish_id),
+			dish_id UUID NOT NULL REFERENCES dishes(dish_id),
 			UNIQUE(reservation_id, dish_id)
 		);
 		`,

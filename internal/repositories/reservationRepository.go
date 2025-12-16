@@ -350,8 +350,8 @@ func (r *ReservationRepository) SaveInvoiceURL(reservationID int, paymentID, sig
              signature = $2,
              payment_status = 'PAID',
              invoice_url = $3,
-             updated_at = NOW()
-         WHERE reservation_id = $4`,
+             updated_at = NOW() 
+         WHERE reservation_id = $4`, 
 		paymentID, signature, invoiceURL, reservationID,
 	)
 	return err
