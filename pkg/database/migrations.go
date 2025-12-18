@@ -34,7 +34,7 @@ func RunMigration(db *pgxpool.Pool) error {
 `,
 		`CREATE TABLE IF NOT EXISTS reservations (
 			reservation_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-			user_id INT NOT NULL REFERENCES users(user_id),
+			user_id UUID NOT NULL REFERENCES users(user_id),
 			table_number INT NOT NULL,
 			reservation_person_name VARCHAR(255),
 			reservation_person_email VARCHAR(255),
@@ -54,7 +54,7 @@ func RunMigration(db *pgxpool.Pool) error {
 		);`,
 		` CREATE TABLE IF NOT EXISTS reservation_dishes (
 			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-			reservation_id INT NOT NULL REFERENCES reservations(reservation_id) ON DELETE CASCADE,
+			reservation_id UUID NOT NULL REFERENCES reservations(reservation_id) ON DELETE CASCADE,
 			dish_id UUID NOT NULL REFERENCES dishes(dish_id),
 			UNIQUE(reservation_id, dish_id)
 		);
@@ -62,7 +62,7 @@ func RunMigration(db *pgxpool.Pool) error {
 	}
 
 	for _, q := range queries {
-		_, err := db.Exec(context.Background(), q)
+		_, err := db.Exec(context.Background(), q) 
 		if err != nil {
 			fmt.Println("Migration failed:", err)
 			return err

@@ -39,7 +39,7 @@ func UploadImageToS3(file multipart.File, fileHeader *multipart.FileHeader, buck
 	return url, nil
 }
 
-func UploadInvoiceToS3(htmlContent string, resID int) (string, error) {
+func UploadInvoiceToS3(htmlContent string, resID uuid.UUID) (string, error) {
 	log.Println("Uploading invoice to S3 for reservation ID:", resID)
 	bucket := os.Getenv("AWS_S3_BUCKET")
 	if bucket == "" {

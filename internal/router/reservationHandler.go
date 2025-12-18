@@ -41,8 +41,9 @@ func (h *ReservationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 func (h *ReservationHandler) GetReservationByID(w http.ResponseWriter, r *http.Request) {
 	params := helpers.ExtractIDFromPath(r)
+	uid := helpers.ParseUUIDOr400(w, params)
 	log.Println("Extracted ID:", params)
-	data, err := h.service.GetReservationByID(params)
+	data, err := h.service.GetReservationByID(uid)
 	if err != nil {
 		log.Println("Failed to retrieve reservation", err)
 		helpers.Error(w, http.StatusInternalServerError, "Failed to retrieve reservation")
@@ -85,6 +86,9 @@ func (h *ReservationHandler) GetAllReservations(w http.ResponseWriter, r *http.R
 func (h *ReservationHandler) CreateReservation(w http.ResponseWriter, r *http.Request) {
 	var d models.Reservation
 	err := json.NewDecoder(r.Body).Decode(&d)
+	log.Println("Raw request body:", r.Body)
+	pretty, _ := json.MarshalIndent(d, "", "  ")
+log.Println("Decoded JSON:", string(pretty))
 	if err != nil {
 		helpers.Error(w, http.StatusBadRequest, "Invalid request payload")
 		return
@@ -94,10 +98,10 @@ func (h *ReservationHandler) CreateReservation(w http.ResponseWriter, r *http.Re
 		helpers.Error(w, http.StatusInternalServerError, "Failed to close request body")
 		return
 	}
-	if d.USERID <= 0 {
-		helpers.Error(w, http.StatusBadRequest, "Please provide user Id")
-		return
-	}
+	// if d.USERID <= 0 {
+	// 	helpers.Error(w, http.StatusBadRequest, "Please provide user Id")
+	// 	return
+	// }
 
 	//validate and create reservation logic here
 	if d.NUMBEROFGUESTS <= 0 {

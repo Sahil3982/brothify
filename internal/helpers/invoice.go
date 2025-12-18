@@ -26,7 +26,7 @@ func BuildInvoiceHTML(res *models.Reservation) (string, error) {
 }
 
 func BuildEmailReservationHTML(res *models.Reservation) (string, error) {
-	tmpl, err := template.ParseFiles("templates/reservationconfirmemail.html")
+	tmpl, err := template.ParseFiles("internal/templates/reservationconfirmemail.html")
 	if err != nil {
 		return "", err
 	}

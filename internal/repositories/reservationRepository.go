@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/brothify/internal/models"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -16,7 +17,7 @@ func NewReservationRepository(db *pgxpool.Pool) *ReservationRepository {
 	return &ReservationRepository{DB: db}
 }
 
-func (r *ReservationRepository) GetReservationByID(id string) (*models.Reservation, error) {
+func (r *ReservationRepository) GetReservationByID(id uuid.UUID) (*models.Reservation, error) {
 
 	query := `
         SELECT 
@@ -330,7 +331,7 @@ func (r *ReservationRepository) DeleteReservation(d *models.Reservation, id stri
 	return err
 }
 
-func (r *ReservationRepository) GetDishPriceByID(id int) (float64, error) {
+func (r *ReservationRepository) GetDishPriceByID(id uuid.UUID) (float64, error) {
 	var price float64
 	err := r.DB.QueryRow(context.Background(),
 		"SELECT price FROM dishes WHERE dish_id = $1", id,
@@ -342,8 +343,7 @@ func (r *ReservationRepository) GetDishPriceByID(id int) (float64, error) {
 	return price, nil
 }
 
-
-func (r *ReservationRepository) SaveInvoiceURL(reservationID int, paymentID, signature, invoiceURL string) error {
+func (r *ReservationRepository) SaveInvoiceURL(reservationID uuid.UUID, paymentID, signature, invoiceURL string) error {
 	_, err := r.DB.Exec(context.Background(),
 		`UPDATE reservations 
          SET payment_id = $1,
@@ -351,7 +351,7 @@ func (r *ReservationRepository) SaveInvoiceURL(reservationID int, paymentID, sig
              payment_status = 'PAID',
              invoice_url = $3,
              updated_at = NOW() 
-         WHERE reservation_id = $4`, 
+         WHERE reservation_id = $4`,
 		paymentID, signature, invoiceURL, reservationID,
 	)
 	return err
