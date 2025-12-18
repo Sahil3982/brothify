@@ -2,11 +2,48 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .invoice-box {
+            max-width: 600px;
+            margin: auto;
+            border: 1px solid #ddd;
+            padding: 20px;
+        }
+        .row {
+            margin-bottom: 10px;
+        }
+        .title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    Status : {{.ID}}
-    Amount Paid : {{.USERID}}
+    <div class="invoice-box">
+        <div class="title">Reservation Invoice</div>
+
+        <div class="row">Reservation ID: {{.ID}}</div>
+        <div class="row">Customer Name: {{.RESERVATIONPERSONNAME}}</div>
+        <div class="row">Email: {{.RESERVATIONPERSONEMAIL}}</div>
+
+        <hr/>
+
+        <div class="row">Status: {{.STATUS}}</div>
+        <div class="row">Amount Paid: ₹{{printf "%.2f" .AMOUNT}}</div>
+        <div class="row">Payment ID: {{.PAYEMENTID}}</div>
+
+        <hr/>
+
+        <div class="row">Table Number: {{.TABLENUMBER}}</div>
+        <div class="row">Guests: {{.NUMBEROFGUESTS}}</div>
+        <div class="row">Date: {{.RESERVATIONDATE}}</div>
+        <div class="row">Time: {{.RESERVATIONTIME}}</div>
+
+        <p>Thank you for dining with us 🙏</p>
+    </div>
 </body>
 </html>

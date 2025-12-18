@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/ses/types"
+	"github.com/brothify/internal/models"
 )
 
 var SES *ses.Client
@@ -46,8 +47,8 @@ func SendEmail(to string, subject string, body string) error {
 	return nil
 }
 
-func SendEmailWithInvoice(to string, htmlContent string) error {
+func SendEmailWithInvoice(to *models.Reservation, htmlContent string) error {
 	log.Println("Sending email to:", to)
 	subject := "Your Invoice from Brothify"
-	return SendEmail(to, subject, htmlContent)
+	return SendEmail(to.RESERVATIONPERSONEMAIL, subject, htmlContent)
 }

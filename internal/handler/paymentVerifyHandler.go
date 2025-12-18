@@ -95,7 +95,7 @@ func (h *PaymentHandler) VerifyRazorpayPayment(w http.ResponseWriter, r *http.Re
 	}
 
 	// Step 7 — Send Email
-	if err := config.SendEmailWithInvoice(req.Email, emailHTML); err != nil {
+	if err := config.SendEmailWithInvoice(res, emailHTML); err != nil {
 		log.Println("Error sending email:", err)
 		helpers.Error(w, http.StatusInternalServerError, "Failed to send email")
 		return

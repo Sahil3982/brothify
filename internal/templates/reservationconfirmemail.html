@@ -2,10 +2,76 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <title>Reservation Confirmed</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f6f6f6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 6px;
+        }
+        .header {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        .content {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+        .highlight {
+            color: #2e7d32;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 25px;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
 </head>
 <body>
-    okokok
+    <div class="container">
+        <div class="header">
+            ✅ Reservation Confirmed
+        </div>
+
+        <div class="content">
+            Hi {{.RESERVATIONPERSONNAME}},<br><br>
+
+            Your table reservation has been <span class="highlight">successfully confirmed</span>.
+
+            <br><br>
+            <strong>Reservation Details:</strong><br>
+            Reservation ID: {{.ID}}<br>
+            Date: {{.RESERVATIONDATE}}<br>
+            Time: {{.RESERVATIONTIME}}<br>
+            Guests: {{.NUMBEROFGUESTS}}<br>
+            Table Number: {{.TABLENUMBER}}<br>
+
+            <br>
+            We look forward to serving you 😊
+        </div>
+
+        <div class="footer">
+            — Team Brothify<br>
+            This is an automated email. Please do not reply.
+        </div>
+    </div>
+    <div>
+        Please find attached your invoice for the reservation.
+        {{.INVOICEHTML}}
+    </div>
+    <div>
+        Please visit our website: <a href="https://brothify.example.com">brothify.example.com</a>
+    </div>
 </body>
 </html>
