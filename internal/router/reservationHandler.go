@@ -21,9 +21,13 @@ func NewReservationHandler(service *services.ReservationService) *ReservationHan
 }
 
 func (h *ReservationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
+	id := helpers.ExtractIDFromPath(r)
 	switch r.Method {
 	case http.MethodGet:
+		if id != "" {
+			h.GetReservationByID(w, r)
+			return
+		}
 		h.GetAllReservations(w, r)
 	case http.MethodPost:
 		h.CreateReservation(w, r)
@@ -34,6 +38,18 @@ func (h *ReservationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.Error(w, "Invalid request method", http.StatusBadRequest)
 	}
+}
+func (h *ReservationHandler) GetReservationByID(w http.ResponseWriter, r *http.Request) {
+	params := helpers.ExtractIDFromPath(r)
+	uid := helpers.ParseUUIDOr400(w, params)
+	log.Println("Extracted ID:", params)
+	data, err := h.service.GetReservationByID(uid)
+	if err != nil {
+		log.Println("Failed to retrieve reservation", err)
+		helpers.Error(w, http.StatusInternalServerError, "Failed to retrieve reservation")
+		return
+	}
+	helpers.JSON(w, http.StatusOK, "Reservation fetched successfully", data)
 }
 
 func (h *ReservationHandler) GetAllReservations(w http.ResponseWriter, r *http.Request) {
@@ -70,6 +86,9 @@ func (h *ReservationHandler) GetAllReservations(w http.ResponseWriter, r *http.R
 func (h *ReservationHandler) CreateReservation(w http.ResponseWriter, r *http.Request) {
 	var d models.Reservation
 	err := json.NewDecoder(r.Body).Decode(&d)
+	log.Println("Raw request body:", r.Body)
+	pretty, _ := json.MarshalIndent(d, "", "  ")
+log.Println("Decoded JSON:", string(pretty))
 	if err != nil {
 		helpers.Error(w, http.StatusBadRequest, "Invalid request payload")
 		return
@@ -79,10 +98,10 @@ func (h *ReservationHandler) CreateReservation(w http.ResponseWriter, r *http.Re
 		helpers.Error(w, http.StatusInternalServerError, "Failed to close request body")
 		return
 	}
-	if d.USERID <= 0 {
-		helpers.Error(w, http.StatusBadRequest, "Please provide user Id")
-		return
-	}
+	// if d.USERID <= 0 {
+	// 	helpers.Error(w, http.StatusBadRequest, "Please provide user Id")
+	// 	return
+	// }
 
 	//validate and create reservation logic here
 	if d.NUMBEROFGUESTS <= 0 {
@@ -106,6 +125,19 @@ func (h *ReservationHandler) CreateReservation(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	var amount float64
+	for _, dishID := range d.DISHITEMS {
+		dish, err := h.service.GetDishPrice(dishID)		
+		if err != nil {
+			log.Println("Failed to fetch dish for reservation:", err)		
+			helpers.Error(w, http.StatusInternalServerError, "Failed to fetch dish for reservation")
+			return
+		}			
+		amount += float64(dish)
+	}
+	d.AMOUNT = amount
+
+
 	// Call service to create reservation
 
 	reservationData, err := h.service.CreateReservation(&d)
@@ -114,6 +146,7 @@ func (h *ReservationHandler) CreateReservation(w http.ResponseWriter, r *http.Re
 		helpers.Error(w, http.StatusInternalServerError, "Failed to create reservation")
 		return
 	}
+	
 
 	helpers.JSON(w, http.StatusCreated, "Reservation created successfully", reservationData)
 }
@@ -125,7 +158,7 @@ func (h *ReservationHandler) UpdateReservation(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		log.Println("Reservation not updated", err)
 		helpers.Error(w, http.StatusBadRequest, "Reservation not updated")
-		return 
+		return
 	}
 
 	helpers.JSON(w, http.StatusOK, "Reservation Updated successfully", data)
@@ -133,13 +166,13 @@ func (h *ReservationHandler) UpdateReservation(w http.ResponseWriter, r *http.Re
 }
 
 func (h *ReservationHandler) DeleteReservation(w http.ResponseWriter, r *http.Request) {
-		var d models.Reservation
-		params := helpers.ExtractIDFromPath(r)
-		err := h.service.DeleteReservation(&d,params)
-		if err != nil {
-			log.Println("Reservation not deleted")
-			helpers.Error(w, http.StatusBadGateway,"Reservation not deleted")
-			return 
-		}
-		helpers.JSON(w,http.StatusOK, "Reservation successfully deleted")
+	var d models.Reservation
+	params := helpers.ExtractIDFromPath(r)
+	err := h.service.DeleteReservation(&d, params)
+	if err != nil {
+		log.Println("Reservation not deleted")
+		helpers.Error(w, http.StatusBadGateway, "Reservation not deleted")
+		return
+	}
+	helpers.JSON(w, http.StatusOK, "Reservation successfully deleted")
 }

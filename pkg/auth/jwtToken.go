@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 )
 
@@ -14,7 +15,7 @@ func init() {
 	secretKey = os.Getenv("JWT_SECRET_KEY")
 }
 
-func GenerateToken(userID int) (string, error) {
+func GenerateToken(userID uuid.UUID) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": userID,
@@ -27,8 +28,8 @@ func GenerateToken(userID int) (string, error) {
 
 }
 
-func VerifyToken(tokenStirng string) (*jwt.Token, error) {
-	token, err := jwt.Parse(tokenStirng, func(token *jwt.Token) (interface{}, error) {
+func VerifyToken(tokenString string) (*jwt.Token, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return secretKey, nil
 	})
 	if err != nil {

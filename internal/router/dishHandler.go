@@ -10,6 +10,7 @@ import (
 	"github.com/brothify/internal/helpers"
 	"github.com/brothify/internal/models"
 	"github.com/brothify/internal/services"
+	"github.com/google/uuid"
 )
 
 type DishHandler struct {
@@ -35,20 +36,24 @@ func (h *DishHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *DishHandler) getAllDishes(w http.ResponseWriter, r *http.Request) {
+func (h *DishHandler) GetDishById(w http.ResponseWriter, r *http.Request) {
 	id := helpers.ExtractIDFromPath(r)
 
-	dishes, err := h.service.GetAllDishes()
-
-	dishID, _ := strconv.Atoi(id)
-	if id != "" {
-		for _, dish := range dishes {
-			if dish.ID == dishID {
-				helpers.JSON(w, http.StatusOK, "dish fetch successfully", dish)
-				return
-			}
-		}
+	dishID, err := strconv.Atoi(id)
+	if err != nil {
+		helpers.Error(w, http.StatusBadRequest, "Invalid dish ID")
+		return
 	}
+	dish, err := h.service.GetDishByID(dishID)
+	if err != nil {
+		helpers.Error(w, http.StatusInternalServerError, "Failed to retrieve dish")
+		return
+	}
+	helpers.JSON(w, http.StatusOK, "Dish fetched successfully", dish)
+}
+
+func (h *DishHandler) getAllDishes(w http.ResponseWriter, r *http.Request) {
+	dishes, err := h.service.GetAllDishes()
 	if err != nil {
 		helpers.Error(w, http.StatusInternalServerError, "Failed to retrieve dishes")
 		return
@@ -108,9 +113,10 @@ func (h *DishHandler) updateDish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dishID, err := strconv.Atoi(id)
+	// Ensure the dish ID is set from the path
+	parsedID, err := uuid.Parse(id)
 	if err != nil {
-		helpers.Error(w, http.StatusBadRequest, "Invalid dish ID")
+		helpers.Error(w, http.StatusBadRequest, "Invalid dish ID format")
 		return
 	}
 
@@ -133,7 +139,7 @@ func (h *DishHandler) updateDish(w http.ResponseWriter, r *http.Request) {
 
 	var exists bool
 	for _, dish := range allDishes {
-		if dish.ID == dishID {
+		if dish.ID == parsedID {
 			exists = true
 			break
 		}
@@ -144,8 +150,7 @@ func (h *DishHandler) updateDish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Ensure the dish ID is set from the path
-	d.ID = dishID
+	d.ID = parsedID
 
 	// ✅ Proceed to update
 	if err := h.service.UpdateDish(id, &d); err != nil {
