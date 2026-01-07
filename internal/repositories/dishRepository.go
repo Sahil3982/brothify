@@ -77,9 +77,7 @@ func (r *DishRepository) CreateDish(d *models.Dish) (*models.Dish, error) {
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING dish_id, dish_name, cat_id, price, description, dish_url, availability, rating, highlight, created_at, updated_at
 	`
-	row := r.DB.QueryRow(ctx, query,
-		d.NAME, d.DESCRIPTION, d.PRICE, d.CATID, d.DISHURL, d.AVAILABILITY, d.RATING, d.HIGHLIGHT,
-	)
+	row := r.DB.QueryRow(ctx, query, d.NAME, d.DESCRIPTION, d.PRICE, d.CATID, d.DISHURL, d.AVAILABILITY, d.RATING, d.HIGHLIGHT	)
 
 	var newDish models.Dish
 	err := row.Scan(

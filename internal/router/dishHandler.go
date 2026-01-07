@@ -53,7 +53,7 @@ func (h *DishHandler) GetDishById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *DishHandler) getAllDishes(w http.ResponseWriter, r *http.Request) {
-	dishes, err := h.service.GetAllDishes()	
+	dishes, err := h.service.GetAllDishes()
 	if err != nil {
 		helpers.Error(w, http.StatusInternalServerError, "Failed to retrieve dishes")
 		return
@@ -149,7 +149,7 @@ func (h *DishHandler) updateDish(w http.ResponseWriter, r *http.Request) {
 		helpers.Error(w, http.StatusNotFound, "Dish not found with given ID")
 		return
 	}
-	
+
 	d.ID = parsedID
 
 	// ✅ Proceed to update
