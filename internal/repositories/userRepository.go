@@ -19,7 +19,7 @@ func (r *UserRepository) LoginUser(d *models.User) (*models.User, error) {
 	ctx := context.Background()
 
 	query := `
-        SELECT id, name, email, password
+        SELECT user_id, name, email, password
         FROM users
         WHERE email=$1 AND password=$2
     `
