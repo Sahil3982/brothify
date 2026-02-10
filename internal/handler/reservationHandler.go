@@ -1,4 +1,4 @@
-package router
+package handler
 
 import (
 	"encoding/json"
@@ -88,7 +88,7 @@ func (h *ReservationHandler) CreateReservation(w http.ResponseWriter, r *http.Re
 	err := json.NewDecoder(r.Body).Decode(&d)
 	log.Println("Raw request body:", r.Body)
 	pretty, _ := json.MarshalIndent(d, "", "  ")
-log.Println("Decoded JSON:", string(pretty))
+    log.Println("Decoded JSON:", string(pretty))
 	if err != nil {
 		helpers.Error(w, http.StatusBadRequest, "Invalid request payload")
 		return

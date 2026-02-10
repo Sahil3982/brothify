@@ -37,10 +37,10 @@ func main() {
 	categoryService := services.NewCategoryService(categoryRepo)
 	reservationService := services.NewReservationService(reservationRepo)
 
-	userHandler := router.NewUserHandler(userService)
-	dishHandler := router.NewDishHandler(dishService)
-	categoryHandler := router.NewCategoryHandler(categoryService)
-	reservationHandler := router.NewReservationHandler(reservationService)
+	userHandler := handler.NewUserHandler(userService)
+	dishHandler := handler.NewDishHandler(dishService)
+	categoryHandler := handler.NewCategoryHandler(categoryService)
+	reservationHandler := handler.NewReservationHandler(reservationService)
 
 	mux := router.NewRouter(dishHandler, userHandler, reservationHandler, paymentHandler, categoryHandler)
 	handler := middleware.CorsMiddleware(mux)

@@ -73,7 +73,6 @@ func (r *ReservationRepository) GetReservationByID(id uuid.UUID) (*models.Reserv
 		dishRows.Scan(
 			&d.ID,
 			&d.NAME,
-			&d.CATID,
 			&d.PRICE,
 			&d.DESCRIPTION,
 			&d.DISHURL,
@@ -155,7 +154,6 @@ func (r *ReservationRepository) GetAllReservations(search string, status string,
 			err := dishRows.Scan(
 				&d.ID,
 				&d.NAME,
-				&d.CATID,
 				&d.PRICE,
 				&d.DESCRIPTION,
 				&d.DISHURL,

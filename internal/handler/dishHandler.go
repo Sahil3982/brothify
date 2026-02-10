@@ -1,16 +1,16 @@
-package router
+package handler
 
 import (
 	"encoding/json"
-	"net/http"
-	"os"
-	"strconv"
-
 	"github.com/brothify/internal/config"
 	"github.com/brothify/internal/helpers"
 	"github.com/brothify/internal/models"
 	"github.com/brothify/internal/services"
+	"github.com/brothify/internal/validators"
 	"github.com/google/uuid"
+	"net/http"
+	"os"
+	"strconv"
 )
 
 type DishHandler struct {
@@ -62,15 +62,36 @@ func (h *DishHandler) getAllDishes(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *DishHandler) createDish(w http.ResponseWriter, r *http.Request) {
-	var d models.Dish
+	var d validators.DishRequest
 	err := r.ParseMultipartForm(10 << 20) //10MB
 	if err != nil {
 		helpers.Error(w, http.StatusBadRequest, "Invalid form data")
 		return
 	}
 
-	name := r.FormValue("name")
+	name := r.FormValue("dish_name")
 	priceStr := r.FormValue("price")
+	category_idStr := r.FormValue("category_id")
+	categoryID, err := uuid.Parse(category_idStr)
+	if err != nil {
+		helpers.Error(w, http.StatusBadRequest, "Invalid category ID")
+		return
+	}
+
+	if name == "" {
+		helpers.Error(w, http.StatusBadRequest, "Dish name is required")
+		return
+	}
+
+	if priceStr == "" {
+		helpers.Error(w, http.StatusBadRequest, "Price is required")
+		return
+	}
+
+	if category_idStr == "" {
+		helpers.Error(w, http.StatusBadRequest, "Category ID is required")
+		return
+	}
 
 	price, err := strconv.ParseFloat(priceStr, 64)
 	if err != nil {
@@ -96,8 +117,20 @@ func (h *DishHandler) createDish(w http.ResponseWriter, r *http.Request) {
 	d.NAME = name
 	d.PRICE = price
 	d.DISHURL = &dish_url
+	d.AVAILABILITY = r.FormValue("availability") == "true"
+	d.DESCRIPTION = r.FormValue("description")
+	d.HIGHLIGHT = r.FormValue("highlight") == "true"
 
-	createdDish, err := h.service.CreateDish(&d)
+	m := models.Dish{
+		NAME:         d.NAME,
+		PRICE:        d.PRICE,
+		DISHURL:      d.DISHURL,
+		AVAILABILITY: d.AVAILABILITY,
+		DESCRIPTION:  d.DESCRIPTION,
+		HIGHLIGHT:    d.HIGHLIGHT,
+	}
+
+	createdDish, err := h.service.CreateDish(&m, categoryID)
 	if err != nil {
 		http.Error(w, "Failed to create dish", http.StatusInternalServerError)
 		return
@@ -120,7 +153,9 @@ func (h *DishHandler) updateDish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var d models.Dish
+	var m models.Dish
+	var d validators.DishRequest
+
 	if err := json.NewDecoder(r.Body).Decode(&d); err != nil {
 		helpers.Error(w, http.StatusBadRequest, "Invalid request payload")
 		return
@@ -153,7 +188,7 @@ func (h *DishHandler) updateDish(w http.ResponseWriter, r *http.Request) {
 	d.ID = parsedID
 
 	// ✅ Proceed to update
-	if err := h.service.UpdateDish(id, &d); err != nil {
+	if err := h.service.UpdateDish(id, &m); err != nil {
 		helpers.Error(w, http.StatusInternalServerError, "Failed to update dish")
 		return
 	}

@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/brothify/internal/models"
 	"github.com/brothify/internal/repositories"
+	"github.com/google/uuid"
 )
 
 type DishService struct {
@@ -21,8 +22,8 @@ func (s *DishService) GetAllDishes() ([]models.Dish, error) {
 	return s.repo.GetAllDishes()
 }
 
-func (s *DishService) CreateDish(d *models.Dish) (*models.Dish, error) {
-	return s.repo.CreateDish(d)
+func (s *DishService) CreateDish(d *models.Dish, catID uuid.UUID) (*models.Dish, error) {
+	return s.repo.CreateDish(d, catID)
 }
 
 

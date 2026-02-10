@@ -8,7 +8,7 @@ import (
 	"github.com/brothify/internal/helpers"
 )
 
-func NewRouter(dishHandler *DishHandler, userHandler *UserHandler, reservationHandler *ReservationHandler, paymentHandler *handler.PaymentHandler, categoryHandler *CategoryHandler) *http.ServeMux {
+func NewRouter(dishHandler *handler.DishHandler, userHandler *handler.UserHandler, reservationHandler *handler.ReservationHandler, paymentHandler *handler.PaymentHandler, categoryHandler *handler.CategoryHandler) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
