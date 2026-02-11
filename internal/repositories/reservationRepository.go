@@ -61,7 +61,7 @@ func (r *ReservationRepository) GetReservationByID(id uuid.UUID) (*models.Reserv
 		return nil, err
 	}
 
-	dishQuery := `SELECT d.dish_id, d.dish_name, d.cat_id, d.price, d.description, d.dish_url, d.availability, d.rating, d.highlight 
+	dishQuery := `SELECT d.dish_id, d.dish_name, d.category_id, d.price, d.description, d.dish_url, d.availability, d.rating, d.highlight 
               FROM reservation_dishes rd 
               JOIN dishes d ON rd.dish_id = d.dish_id 
               WHERE rd.reservation_id = $1`
@@ -143,7 +143,7 @@ func (r *ReservationRepository) GetAllReservations(search string, status string,
 		if err != nil {
 			return nil, err
 		}
-		dishQuery := `SELECT d.dish_id, d.dish_name, d.cat_id, d.price, d.description, d.dish_url, d.availability, d.rating, d.highlight FROM reservation_dishes rd JOIN dishes d ON rd.dish_id = d.dish_id WHERE rd.reservation_id = $1`
+		dishQuery := `SELECT d.dish_id, d.dish_name, d.category_id, d.price, d.description, d.dish_url, d.availability, d.rating, d.highlight FROM reservation_dishes rd JOIN dishes d ON rd.dish_id = d.dish_id WHERE rd.reservation_id = $1`
 		dishRows, err := r.DB.Query(context.Background(), dishQuery, res.ID)
 		if err != nil {
 			return nil, err

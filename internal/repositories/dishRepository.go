@@ -19,7 +19,7 @@ func NewDishRepository(db *pgxpool.Pool) *DishRepository {
 
 func (r *DishRepository) GetDishByID(id int) (*models.Dish, error) {
 	ctx := context.Background()
-	query := `SELECT dish_id, dish_name, cat_id, price, description, dish_url, availability, rating, highlight, created_at, updated_at 
+	query := `SELECT dish_id, dish_name, category_id, price, description, dish_url, availability, rating, highlight, created_at, updated_at 
 			  FROM dishes WHERE dish_id = $1`
 	var d models.Dish
 	err := r.DB.QueryRow(ctx, query, id).Scan(
@@ -37,7 +37,7 @@ func (r *DishRepository) GetDishByID(id int) (*models.Dish, error) {
 func (r *DishRepository) GetAllDishes() ([]models.Dish, error) {
 	ctx := context.Background()
 	rows, err := r.DB.Query(ctx, `
-		SELECT dish_id, dish_name, cat_id, price, description, dish_url, availability, rating, highlight, created_at, updated_at 
+		SELECT dish_id, dish_name, price, description, dish_url, availability, rating, highlight, created_at, updated_at 
 		FROM dishes
 	`)
 	if err != nil {
@@ -75,7 +75,7 @@ func (r *DishRepository) CreateDish(d *models.Dish, catID uuid.UUID) (*models.Di
 	ctx := context.Background()
 	tx, err := r.DB.Begin(ctx)
 	if err != nil {
-		log.Println("❌ Transaction begin error:", err)
+		log.Println("Transaction begin error:", err)
 		return nil, err
 	}
 	defer tx.Rollback(ctx)
@@ -119,7 +119,7 @@ func (r *DishRepository) CreateDish(d *models.Dish, catID uuid.UUID) (*models.Di
 
 	_, err = tx.Exec(
 		ctx,
-		`INSERT INTO dish_categories (dish_id, cat_id) VALUES ($1, $2)`,
+		`INSERT INTO dish_categories (dish_id, category_id) VALUES ($1, $2)`,
 		newDish.ID,
 		catID,
 	)
@@ -131,11 +131,12 @@ func (r *DishRepository) CreateDish(d *models.Dish, catID uuid.UUID) (*models.Di
 	var categories models.Category
 	err = tx.QueryRow(
 		ctx,
-		`SELECT cat_id,cat_name FROM categories WHERE cat_id=$1`,
+		`SELECT category_id, name, description d FROM categories WHERE category_id=$1`,
 		catID,
 	).Scan(
 		&categories.ID,
 		&categories.NAME,
+		&categories.DESCRIPTION,
 	)
 	if err != nil {
 		log.Println("❌ Category retrieval error:", err)
@@ -155,7 +156,7 @@ func (r *DishRepository) UpdateDish(id string, d *models.Dish) error {
 	ctx := context.Background()
 	query := `
 		UPDATE dishes 
-		SET dish_name = $1, description = $2, price = $3, cat_id = $4, dish_url = $5, availability = $6, rating = $7, highlight = $8
+		SET dish_name = $1, description = $2, price = $3, category_id = $4, dish_url = $5, availability = $6, rating = $7, highlight = $8
 		WHERE dish_id = $9
 	`
 	_, err := r.DB.Exec(ctx, query, d.NAME, d.DESCRIPTION, d.PRICE, d.DISHURL, d.AVAILABILITY, d.RATING, d.HIGHLIGHT, id)

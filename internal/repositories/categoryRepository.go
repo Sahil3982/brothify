@@ -19,7 +19,7 @@ func (r *CategoryRepository) GetAllCategories() ([]models.Category, error) {
 	var categories []models.Category
 	ctx := context.Background()
 
-	query := `SELECT cat_id, name, description, slug FROM categories`
+	query := `SELECT category_id, name, description, slug FROM categories`
 	rows, err := r.DB.Query(ctx, query)
 	if err != nil {
 		return nil, err
@@ -37,17 +37,17 @@ func (r *CategoryRepository) GetAllCategories() ([]models.Category, error) {
 
 func (r *CategoryRepository) CreateCategory(c *models.Category) (*models.Category, error) {
 	ctx := context.Background()
-	query := `INSERT INTO categories (name, description, slug) VALUES ($1, $2, $3) RETURNING cat_id, name, description, slug, created_at, updated_at`
-	err := r.DB.QueryRow(ctx, query, c.NAME, c.DESCRIPTION, c.SLUG).Scan(&c.ID, &c.NAME, &c.DESCRIPTION, &c.SLUG, &c.CREATEDAT, &c.UPDATEDAT)	
+	query := `INSERT INTO categories (name, description, slug) VALUES ($1, $2, $3) RETURNING category_id, name, description, slug, created_at, updated_at`
+	err := r.DB.QueryRow(ctx, query, c.NAME, c.DESCRIPTION, c.SLUG).Scan(&c.ID, &c.NAME, &c.DESCRIPTION, &c.SLUG, &c.CREATEDAT, &c.UPDATEDAT)
 	if err != nil {
 		return nil, err
 	}
 	return c, nil
-}	
+}
 
 func (r *CategoryRepository) UpdateCategory(c *models.Category, params string) (*models.Category, error) {
 	ctx := context.Background()
-	query := `UPDATE categories SET name = $1, description = $2, slug = $3 WHERE cat_id = $4 RETURNING cat_id, name, description, slug`
+	query := `UPDATE categories SET name = $1, description = $2, slug = $3 WHERE category_id = $4 RETURNING category_id, name, description, slug`
 	err := r.DB.QueryRow(ctx, query, c.NAME, c.DESCRIPTION, c.SLUG, params).Scan(&c.ID, &c.NAME, &c.DESCRIPTION, &c.SLUG)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (r *CategoryRepository) UpdateCategory(c *models.Category, params string) (
 
 func (r *CategoryRepository) DeleteCategory(id string) error {
 	ctx := context.Background()
-	query := `DELETE FROM categories WHERE cat_id = $1`
+	query := `DELETE FROM categories WHERE category_id = $1`
 	_, err := r.DB.Exec(ctx, query, id)
 	return err
 }

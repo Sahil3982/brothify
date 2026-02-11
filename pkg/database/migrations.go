@@ -19,7 +19,7 @@ func RunMigration(db *pgxpool.Pool) error {
 		);
 		`,
 		`CREATE TABLE IF NOT EXISTS categories (
-			cat_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			category_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 			name VARCHAR(255) NOT NULL,
 			description TEXT,
 			slug VARCHAR(255) UNIQUE NOT NULL,
@@ -30,7 +30,7 @@ func RunMigration(db *pgxpool.Pool) error {
 		`CREATE TABLE IF NOT EXISTS dishes (
 			dish_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     		dish_name VARCHAR(255) NOT NULL,
-    		cat_id UUID REFERENCES categories(cat_id) ON DELETE SET NULL,
+    		category_id UUID REFERENCES categories(category_id) ON DELETE SET NULL,
     		price NUMERIC(10,2) NOT NULL,
     		description TEXT,
     		dish_url TEXT, 
@@ -79,8 +79,8 @@ func RunMigration(db *pgxpool.Pool) error {
 		`CREATE TABLE IF NOT EXISTS dish_categories (
 			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 			dish_id UUID NOT NULL REFERENCES dishes(dish_id) ON DELETE CASCADE,
-			cat_id UUID NOT NULL REFERENCES categories(cat_id) ON DELETE CASCADE,
-			UNIQUE(dish_id, cat_id)
+			category_id UUID NOT NULL REFERENCES categories(category_id) ON DELETE CASCADE,
+			UNIQUE(dish_id, category_id)
 		);`,
 	}
 
