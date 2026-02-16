@@ -11,11 +11,10 @@ type Dish struct {
 	NAME         string     `json:"dish_name"`
 	PRICE        float64    `json:"price"`
 	DESCRIPTION  string     `json:"description"`
-	DISHURL      *string    `json:"dish_url"`
+	DISHURL      string    `json:"dish_url"`
 	AVAILABILITY bool       `json:"availability"`
 	RATING       float64    `json:"rating"`
 	HIGHLIGHT    bool       `json:"highlight"`
 	UPDATEDAT    time.Time  `json:"updated_at"`
 	CREATEDAT    time.Time  `json:"created_at"`
-	CATEGORIES   []Category `json:"categories"`
 }

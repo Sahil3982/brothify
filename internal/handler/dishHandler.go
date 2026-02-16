@@ -2,15 +2,15 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/brothify/internal/config"
+	"net/http"
+	"strconv"
+
+	"github.com/brothify/internal/dto"
 	"github.com/brothify/internal/helpers"
 	"github.com/brothify/internal/models"
 	"github.com/brothify/internal/services"
 	"github.com/brothify/internal/validators"
 	"github.com/google/uuid"
-	"net/http"
-	"os"
-	"strconv"
 )
 
 type DishHandler struct {
@@ -62,82 +62,41 @@ func (h *DishHandler) getAllDishes(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *DishHandler) createDish(w http.ResponseWriter, r *http.Request) {
-	var d validators.DishRequest
-	err := r.ParseMultipartForm(10 << 20) //10MB
+	var req dto.DishRequest
+
+	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		helpers.Error(w, http.StatusBadRequest, "Invalid form data")
 		return
 	}
 
-	name := r.FormValue("dish_name")
+	req.NAME = r.FormValue("name")
+	req.DESCRIPTION = r.FormValue("description")
+
 	priceStr := r.FormValue("price")
-	category_idStr := r.FormValue("category_id")
-	categoryID, err := uuid.Parse(category_idStr)
-	if err != nil {
-		helpers.Error(w, http.StatusBadRequest, "Invalid category ID")
-		return
-	}
-
-	if name == "" {
-		helpers.Error(w, http.StatusBadRequest, "Dish name is required")
-		return
-	}
-
-	if priceStr == "" {
-		helpers.Error(w, http.StatusBadRequest, "Price is required")
-		return
-	}
-
-	if category_idStr == "" {
-		helpers.Error(w, http.StatusBadRequest, "Category ID is required")
-		return
-	}
-
 	price, err := strconv.ParseFloat(priceStr, 64)
 	if err != nil {
 		helpers.Error(w, http.StatusBadRequest, "Invalid price")
 		return
 	}
+	req.PRICE = price
 
 	file, fileHeader, err := r.FormFile("dish_url")
-
 	if err != nil {
 		helpers.Error(w, http.StatusBadRequest, "Failed to retrieve image file")
 		return
 	}
-
 	defer file.Close()
 
-	dish_url, err := config.UploadImageToS3(file, fileHeader, os.Getenv("AWS_S3_BUCKET"))
+	createdDish, err := h.service.CreateDish(r.Context(), &req, file, fileHeader)
 	if err != nil {
-		helpers.Error(w, http.StatusInternalServerError, "Failed to upload image to S3")
-		return
-	}
-
-	d.NAME = name
-	d.PRICE = price
-	d.DISHURL = &dish_url
-	d.AVAILABILITY = r.FormValue("availability") == "true"
-	d.DESCRIPTION = r.FormValue("description")
-	d.HIGHLIGHT = r.FormValue("highlight") == "true"
-
-	m := models.Dish{
-		NAME:         d.NAME,
-		PRICE:        d.PRICE,
-		DISHURL:      d.DISHURL,
-		AVAILABILITY: d.AVAILABILITY,
-		DESCRIPTION:  d.DESCRIPTION,
-		HIGHLIGHT:    d.HIGHLIGHT,
-	}
-
-	createdDish, err := h.service.CreateDish(&m, categoryID)
-	if err != nil {
-		http.Error(w, "Failed to create dish", http.StatusInternalServerError)
+		helpers.Error(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	helpers.JSON(w, http.StatusCreated, "Dish created successfully", createdDish)
 }
+
 
 func (h *DishHandler) updateDish(w http.ResponseWriter, r *http.Request) {
 	id := helpers.ExtractIDFromPath(r)

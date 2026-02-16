@@ -57,7 +57,7 @@ func (r *ReservationRepository) GetReservationByID(id uuid.UUID) (*models.Reserv
 	)
 
 	if err != nil {
-		log.Println("❌ GetReservationByID error:", err)
+		log.Println("GetReservationByID error:", err)
 		return nil, err
 	}
 
@@ -116,7 +116,7 @@ func (r *ReservationRepository) GetAllReservations(search string, status string,
 	`
 	rows, err := r.DB.Query(context.Background(), query, search, status, date, limit, offset)
 	if err != nil {
-		log.Println("❌ Query error:", err)
+		log.Println("Query error:", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -316,7 +316,7 @@ func (r *ReservationRepository) UpdateReservation(d *models.Reservation, id stri
 	)
 
 	if err != nil {
-		log.Println("❌ UpdateReservation error:", err)
+		log.Println("UpdateReservation error:", err)
 		return nil, err
 	}
 

@@ -28,7 +28,7 @@ func (r *DishRepository) GetDishByID(id int) (*models.Dish, error) {
 		&d.CREATEDAT, &d.UPDATEDAT,
 	)
 	if err != nil {
-		log.Println("❌ GetDishByID error:", err)
+		log.Println("GetDishByID error:", err)
 		return nil, err
 	}
 	return &d, nil
@@ -41,7 +41,7 @@ func (r *DishRepository) GetAllDishes() ([]models.Dish, error) {
 		FROM dishes
 	`)
 	if err != nil {
-		log.Println("❌ Query error:", err)
+		log.Println("Query error:", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -63,16 +63,15 @@ func (r *DishRepository) GetAllDishes() ([]models.Dish, error) {
 	}
 
 	if err = rows.Err(); err != nil {
-		log.Println("❌ Rows iteration error:", err)
+		log.Println("Rows iteration error:", err)
 		return nil, err
 	}
 
 	return dishes, nil
 }
 
-func (r *DishRepository) CreateDish(d *models.Dish, catID uuid.UUID) (*models.Dish, error) {
+func (r *DishRepository) CreateDish(ctx context.Context, d *models.Dish, catID uuid.UUID) (*models.Dish, error) {
 	log.Printf("Creating dish: %+v\n", d)
-	ctx := context.Background()
 	tx, err := r.DB.Begin(ctx)
 	if err != nil {
 		log.Println("Transaction begin error:", err)
@@ -113,7 +112,7 @@ func (r *DishRepository) CreateDish(d *models.Dish, catID uuid.UUID) (*models.Di
 		&newDish.UPDATEDAT,
 	)
 	if err != nil {
-		log.Println("❌ Insert Scan error:", err)
+		log.Println("Insert Scan error:", err)
 		return nil, err
 	}
 
@@ -124,28 +123,12 @@ func (r *DishRepository) CreateDish(d *models.Dish, catID uuid.UUID) (*models.Di
 		catID,
 	)
 	if err != nil {
-		log.Println("❌ Category association error:", err)
+		log.Println("Category association error:", err)
 		return nil, err
-	}
-
-	var categories models.Category
-	err = tx.QueryRow(
-		ctx,
-		`SELECT category_id, name, description d FROM categories WHERE category_id=$1`,
-		catID,
-	).Scan(
-		&categories.ID,
-		&categories.NAME,
-		&categories.DESCRIPTION,
-	)
-	if err != nil {
-		log.Println("❌ Category retrieval error:", err)
-		return nil, err
-	}
-	newDish.CATEGORIES = append(newDish.CATEGORIES, categories)
+	}	
 
 	if err := tx.Commit(ctx); err != nil {
-		log.Println("❌ Transaction commit error:", err)
+		log.Println("Transaction commit error:", err)
 		return nil, err
 	}
 

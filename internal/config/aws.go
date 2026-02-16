@@ -27,7 +27,7 @@ func InitAWS() {
 	)
 
 	if err != nil {
-		log.Fatal("❌ Failed to load AWS config:", err)
+		log.Fatal("Failed to load AWS config:", err)
 	}
 
 	log.Println("✔ AWS config loaded")
