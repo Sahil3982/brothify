@@ -9,7 +9,7 @@ import (
 	"github.com/brothify/internal/helpers"
 	"github.com/brothify/internal/models"
 	"github.com/brothify/internal/services"
-	"github.com/brothify/internal/validators"
+	// "github.com/brothify/internal/validators"
 	"github.com/google/uuid"
 )
 
@@ -97,7 +97,6 @@ func (h *DishHandler) createDish(w http.ResponseWriter, r *http.Request) {
 	helpers.JSON(w, http.StatusCreated, "Dish created successfully", createdDish)
 }
 
-
 func (h *DishHandler) updateDish(w http.ResponseWriter, r *http.Request) {
 	id := helpers.ExtractIDFromPath(r)
 	if id == "" {
@@ -113,7 +112,7 @@ func (h *DishHandler) updateDish(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var m models.Dish
-	var d validators.DishRequest
+	var d dto.DishRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&d); err != nil {
 		helpers.Error(w, http.StatusBadRequest, "Invalid request payload")
@@ -144,7 +143,7 @@ func (h *DishHandler) updateDish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	d.ID = parsedID
+	// d.ID = parsedID
 
 	// ✅ Proceed to update
 	if err := h.service.UpdateDish(id, &m); err != nil {

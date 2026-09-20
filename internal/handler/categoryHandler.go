@@ -35,9 +35,9 @@ func (h *CategoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *CategoryHandler) getAllCategories(w http.ResponseWriter, r *http.Request) {
-	// Implementation for getting all categories
 	category, err := h.service.GetAllCategories()
 	if err != nil {
+		log.Println("Failed to retrieve categories:", err)
 		helpers.Error(w, http.StatusInternalServerError, "Failed to retrieve categories")
 		return
 	}

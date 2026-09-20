@@ -52,7 +52,7 @@ func (s *DishService) CreateDish(ctx context.Context, req *dto.DishRequest, file
 	response := &dto.DishResponse{
 		ID:           newDish.ID,
 		NAME:         newDish.NAME,
-		PRICE:        float64(newDish.PRICE), 
+		PRICE:        float64(newDish.PRICE),
 		DESCRIPTION:  newDish.DESCRIPTION,
 		DISH_URL:     newDish.DISHURL,
 		AVAILABILITY: newDish.AVAILABILITY,
@@ -60,14 +60,6 @@ func (s *DishService) CreateDish(ctx context.Context, req *dto.DishRequest, file
 		HIGHLIGHT:    newDish.HIGHLIGHT,
 		CREATEDAT:    newDish.CREATEDAT,
 		UPDATEDAT:    newDish.UPDATEDAT,
-	}
-
-	for _, cat := range newDish.CATEGORIES {
-		response.CATEGORIES = append(response.CATEGORIES, dto.CategoryResponse{
-			ID:          cat.ID,
-			NAME:        cat.NAME,
-			DESCRIPTION: cat.DESCRIPTION,
-		})
 	}
 
 	return response, nil

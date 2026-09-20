@@ -27,6 +27,23 @@ func RunMigration(db *pgxpool.Pool) error {
    			updated_at TIMESTAMP DEFAULT NOW()
 		);
 		`,
+		`DO $$
+		BEGIN
+			IF NOT EXISTS (
+				SELECT 1 FROM information_schema.columns
+				WHERE table_name = 'categories' AND column_name = 'category_id'
+			) THEN
+				IF EXISTS (
+					SELECT 1 FROM information_schema.columns
+					WHERE table_name = 'categories' AND column_name = 'id'
+				) THEN
+					ALTER TABLE categories RENAME COLUMN id TO category_id;
+				ELSE
+					ALTER TABLE categories ADD COLUMN category_id UUID DEFAULT gen_random_uuid();
+					UPDATE categories SET category_id = gen_random_uuid() WHERE category_id IS NULL;
+				END IF;
+			END IF;
+		END $$;`,
 		`CREATE TABLE IF NOT EXISTS dishes (
 			dish_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     		dish_name VARCHAR(255) NOT NULL,
