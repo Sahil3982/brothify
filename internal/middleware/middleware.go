@@ -1,10 +1,12 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
+
 	"github.com/brothify/pkg/auth"
 )
-
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -14,20 +16,26 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			http.Error(w, "Unauthorized: No token provided", http.StatusUnauthorized)
 			return
 		}
+		parts := strings.Split(tokenString, " ")
 
-		token, err := auth.VerifyToken(tokenString)
+		token, err := auth.VerifyToken(parts[1])
 		if err != nil || !token.Valid {
+			fmt.Println("err", err)
 			http.Error(w, "Unauthorized: Invalid token", http.StatusUnauthorized)
 			return
 		}
-
+		fmt.Println("token", token)
 		next.ServeHTTP(w, r)
 
 	})
 }
 
+// func isAdmin(next http.Handler) http.Handler {
+
+// }
+
 func CorsMiddleware(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// Allow any domain
 		w.Header().Set("Access-Control-Allow-Origin", "*")

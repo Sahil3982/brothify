@@ -30,8 +30,12 @@ func GenerateToken(userID uuid.UUID) (string, error) {
 
 func VerifyToken(tokenString string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return secretKey, nil
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, jwt.ErrTokenSignatureInvalid
+		}
+		return []byte(secretKey), nil
 	})
+
 	if err != nil {
 		return nil, err
 	}
