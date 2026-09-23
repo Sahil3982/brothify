@@ -9,6 +9,7 @@ import (
 	"github.com/brothify/internal/helpers"
 	"github.com/brothify/internal/models"
 	"github.com/brothify/internal/services"
+
 	// "github.com/brothify/internal/validators"
 	"github.com/google/uuid"
 )
@@ -70,8 +71,25 @@ func (h *DishHandler) createDish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req.NAME = r.FormValue("name")
+	req.NAME = r.FormValue("dish_name")
+	if req.NAME == "" {
+		req.NAME = r.FormValue("name")
+	}
+	if req.NAME == "" {
+		helpers.Error(w, http.StatusBadRequest, "Dish name is required")
+		return
+	}
 	req.DESCRIPTION = r.FormValue("description")
+	categoryID := r.FormValue("category_id")
+	if categoryID == "" {
+		helpers.Error(w, http.StatusBadRequest, "Category ID is required")
+		return
+	}
+	req.CATEGORYID, err = uuid.Parse(categoryID)
+	if err != nil {
+		helpers.Error(w, http.StatusBadRequest, "Invalid category ID")
+		return
+	}
 
 	priceStr := r.FormValue("price")
 	price, err := strconv.ParseFloat(priceStr, 64)

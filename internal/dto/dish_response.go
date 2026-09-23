@@ -16,6 +16,7 @@ type CategoryResponse struct {
 type DishResponse struct {
 	ID           uuid.UUID          `json:"dish_id"`
 	NAME         string             `json:"dish_name"`
+	CATEGORYID   *uuid.UUID         `json:"category_id,omitempty"`
 	PRICE        float64            `json:"price"`
 	DESCRIPTION  string             `json:"description"`
 	DISH_URL     string             `json:"dish_url"`

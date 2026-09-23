@@ -44,6 +44,22 @@ func RunMigration(db *pgxpool.Pool) error {
 				END IF;
 			END IF;
 		END $$;`,
+		`DO $$
+		BEGIN
+			IF NOT EXISTS (
+				SELECT 1
+				FROM information_schema.table_constraints tc
+				JOIN information_schema.constraint_column_usage ccu
+					ON tc.constraint_name = ccu.constraint_name
+					AND tc.table_schema = ccu.table_schema
+				WHERE tc.table_name = 'categories'
+				  AND ccu.column_name = 'category_id'
+				  AND tc.constraint_type IN ('PRIMARY KEY', 'UNIQUE')
+			) THEN
+				ALTER TABLE categories
+					ADD CONSTRAINT categories_category_id_key UNIQUE (category_id);
+			END IF;
+		END $$;`,
 		`CREATE TABLE IF NOT EXISTS dishes (
 			dish_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     		dish_name VARCHAR(255) NOT NULL,
@@ -58,6 +74,9 @@ func RunMigration(db *pgxpool.Pool) error {
     		updated_at TIMESTAMP DEFAULT NOW()
 		);
 `,
+		`ALTER TABLE dishes
+			ADD COLUMN IF NOT EXISTS category_id UUID
+			REFERENCES categories(category_id) ON DELETE SET NULL;`,
 		`CREATE TABLE IF NOT EXISTS reservations (
 			reservation_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 			user_id UUID NOT NULL REFERENCES users(user_id),

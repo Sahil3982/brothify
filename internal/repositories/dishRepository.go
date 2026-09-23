@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/brothify/internal/models"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -23,7 +22,7 @@ func (r *DishRepository) GetDishByID(id int) (*models.Dish, error) {
 			  FROM dishes WHERE dish_id = $1`
 	var d models.Dish
 	err := r.DB.QueryRow(ctx, query, id).Scan(
-		&d.ID, &d.NAME, &d.PRICE, &d.DESCRIPTION,
+		&d.ID, &d.NAME, &d.CATEGORYID, &d.PRICE, &d.DESCRIPTION,
 		&d.DISHURL, &d.AVAILABILITY, &d.RATING, &d.HIGHLIGHT,
 		&d.CREATEDAT, &d.UPDATEDAT,
 	)
@@ -37,7 +36,7 @@ func (r *DishRepository) GetDishByID(id int) (*models.Dish, error) {
 func (r *DishRepository) GetAllDishes() ([]models.Dish, error) {
 	ctx := context.Background()
 	rows, err := r.DB.Query(ctx, `
-		SELECT dish_id, dish_name, price, description, dish_url, availability, rating, highlight, created_at, updated_at 
+		SELECT dish_id, dish_name, category_id, price, description, dish_url, availability, rating, highlight, created_at, updated_at 
 		FROM dishes
 	`)
 	if err != nil {
@@ -51,7 +50,7 @@ func (r *DishRepository) GetAllDishes() ([]models.Dish, error) {
 	for rows.Next() {
 		var d models.Dish
 		err := rows.Scan(
-			&d.ID, &d.NAME, &d.PRICE, &d.DESCRIPTION,
+			&d.ID, &d.NAME, &d.CATEGORYID, &d.PRICE, &d.DESCRIPTION,
 			&d.DISHURL, &d.AVAILABILITY, &d.RATING, &d.HIGHLIGHT,
 			&d.CREATEDAT, &d.UPDATEDAT,
 		)
@@ -70,7 +69,7 @@ func (r *DishRepository) GetAllDishes() ([]models.Dish, error) {
 	return dishes, nil
 }
 
-func (r *DishRepository) CreateDish(ctx context.Context, d *models.Dish, catID uuid.UUID) (*models.Dish, error) {
+func (r *DishRepository) CreateDish(ctx context.Context, d *models.Dish) (*models.Dish, error) {
 	log.Printf("Creating dish: %+v\n", d)
 	tx, err := r.DB.Begin(ctx)
 	if err != nil {
@@ -81,11 +80,11 @@ func (r *DishRepository) CreateDish(ctx context.Context, d *models.Dish, catID u
 
 	dishQuery := `
 		INSERT INTO dishes (
-		dish_name, description, price, dish_url,
+		dish_name, category_id, description, price, dish_url,
 		 availability, rating, highlight
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
-		RETURNING dish_id, dish_name, price, description, 
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		RETURNING dish_id, dish_name, category_id, price, description, 
 		dish_url, availability, rating, highlight, created_at, updated_at
 	`
 	var newDish models.Dish
@@ -93,6 +92,7 @@ func (r *DishRepository) CreateDish(ctx context.Context, d *models.Dish, catID u
 		ctx,
 		dishQuery,
 		d.NAME,
+		d.CATEGORYID,
 		d.DESCRIPTION,
 		d.PRICE,
 		d.DISHURL,
@@ -102,6 +102,7 @@ func (r *DishRepository) CreateDish(ctx context.Context, d *models.Dish, catID u
 	).Scan(
 		&newDish.ID,
 		&newDish.NAME,
+		&newDish.CATEGORYID,
 		&newDish.PRICE,
 		&newDish.DESCRIPTION,
 		&newDish.DISHURL,
@@ -115,17 +116,6 @@ func (r *DishRepository) CreateDish(ctx context.Context, d *models.Dish, catID u
 		log.Println("Insert Scan error:", err)
 		return nil, err
 	}
-
-	_, err = tx.Exec(
-		ctx,
-		`INSERT INTO dish_categories (dish_id, category_id) VALUES ($1, $2)`,
-		newDish.ID,
-		catID,
-	)
-	if err != nil {
-		log.Println("Category association error:", err)
-		return nil, err
-	}	
 
 	if err := tx.Commit(ctx); err != nil {
 		log.Println("Transaction commit error:", err)
@@ -142,7 +132,7 @@ func (r *DishRepository) UpdateDish(id string, d *models.Dish) error {
 		SET dish_name = $1, description = $2, price = $3, category_id = $4, dish_url = $5, availability = $6, rating = $7, highlight = $8
 		WHERE dish_id = $9
 	`
-	_, err := r.DB.Exec(ctx, query, d.NAME, d.DESCRIPTION, d.PRICE, d.DISHURL, d.AVAILABILITY, d.RATING, d.HIGHLIGHT, id)
+	_, err := r.DB.Exec(ctx, query, d.NAME, d.DESCRIPTION, d.PRICE, d.CATEGORYID, d.DISHURL, d.AVAILABILITY, d.RATING, d.HIGHLIGHT, id)
 	return err
 }
 

@@ -36,6 +36,7 @@ func (s *DishService) CreateDish(ctx context.Context, req *dto.DishRequest, file
 
 	dishModel := &models.Dish{
 		NAME:         req.NAME,
+		CATEGORYID:   &req.CATEGORYID,
 		DESCRIPTION:  req.DESCRIPTION,
 		PRICE:        req.PRICE,
 		DISHURL:      imageURL,
@@ -44,7 +45,7 @@ func (s *DishService) CreateDish(ctx context.Context, req *dto.DishRequest, file
 		HIGHLIGHT:    false,
 	}
 
-	newDish, err := s.repo.CreateDish(ctx, dishModel, req.CATEGORYID)
+	newDish, err := s.repo.CreateDish(ctx, dishModel)
 	if err != nil {
 		return nil, err
 	}
@@ -52,6 +53,7 @@ func (s *DishService) CreateDish(ctx context.Context, req *dto.DishRequest, file
 	response := &dto.DishResponse{
 		ID:           newDish.ID,
 		NAME:         newDish.NAME,
+		CATEGORYID:   newDish.CATEGORYID,
 		PRICE:        float64(newDish.PRICE),
 		DESCRIPTION:  newDish.DESCRIPTION,
 		DISH_URL:     newDish.DISHURL,
@@ -60,6 +62,7 @@ func (s *DishService) CreateDish(ctx context.Context, req *dto.DishRequest, file
 		HIGHLIGHT:    newDish.HIGHLIGHT,
 		CREATEDAT:    newDish.CREATEDAT,
 		UPDATEDAT:    newDish.UPDATEDAT,
+		CATEGORIES:   make([]dto.CategoryResponse, 0),
 	}
 
 	return response, nil
