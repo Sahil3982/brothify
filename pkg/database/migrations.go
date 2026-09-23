@@ -97,6 +97,7 @@ func RunMigration(db *pgxpool.Pool) error {
 			created_at TIMESTAMP DEFAULT NOW(),
 			updated_at TIMESTAMP DEFAULT NOW()
 		);`,
+		`ALTER TABLE reservations ALTER COLUMN user_id DROP NOT NULL;`,
 		` CREATE TABLE IF NOT EXISTS reservation_dishes (
 			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 			reservation_id UUID NOT NULL REFERENCES reservations(reservation_id) ON DELETE CASCADE,

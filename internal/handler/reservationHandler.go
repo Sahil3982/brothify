@@ -10,6 +10,7 @@ import (
 	"github.com/brothify/internal/models"
 	"github.com/brothify/internal/services"
 	"github.com/brothify/pkg/utils"
+	"github.com/google/uuid"
 )
 
 type ReservationHandler struct {
@@ -21,10 +22,10 @@ func NewReservationHandler(service *services.ReservationService) *ReservationHan
 }
 
 func (h *ReservationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	id := helpers.ExtractIDFromPath(r)
 	switch r.Method {
 	case http.MethodGet:
-		if id != "" {
+		id := helpers.ExtractIDFromPath(r)
+		if id != "reservations" {
 			h.GetReservationByID(w, r)
 			return
 		}
@@ -41,7 +42,11 @@ func (h *ReservationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 func (h *ReservationHandler) GetReservationByID(w http.ResponseWriter, r *http.Request) {
 	params := helpers.ExtractIDFromPath(r)
-	uid := helpers.ParseUUIDOr400(w, params)
+	uid, err := uuid.Parse(params)
+	if err != nil {
+		helpers.Error(w, http.StatusBadRequest, "Invalid reservation ID")
+		return
+	}
 	log.Println("Extracted ID:", params)
 	data, err := h.service.GetReservationByID(uid)
 	if err != nil {
@@ -58,11 +63,19 @@ func (h *ReservationHandler) GetAllReservations(w http.ResponseWriter, r *http.R
 	status := q.Get("status")
 	date := q.Get("date")
 
-	page, _ := strconv.Atoi(q.Get("page"))
+	page, err := strconv.Atoi(q.Get("page"))
+	if q.Get("page") != "" && err != nil {
+		helpers.Error(w, http.StatusBadRequest, "Invalid page")
+		return
+	}
 	if page <= 0 {
 		page = 1
 	}
-	limit, _ := strconv.Atoi(q.Get("limit"))
+	limit, err := strconv.Atoi(q.Get("limit"))
+	if q.Get("limit") != "" && err != nil {
+		helpers.Error(w, http.StatusBadRequest, "Invalid limit")
+		return
+	}
 	if limit <= 0 {
 		limit = 10
 	}
@@ -88,10 +101,13 @@ func (h *ReservationHandler) CreateReservation(w http.ResponseWriter, r *http.Re
 	err := json.NewDecoder(r.Body).Decode(&d)
 	log.Println("Raw request body:", r.Body)
 	pretty, _ := json.MarshalIndent(d, "", "  ")
-    log.Println("Decoded JSON:", string(pretty))
+	log.Println("Decoded JSON:", string(pretty))
 	if err != nil {
 		helpers.Error(w, http.StatusBadRequest, "Invalid request payload")
 		return
+	}
+	if d.USERID != nil && *d.USERID == uuid.Nil {
+		d.USERID = nil
 	}
 	res := r.Body.Close()
 	if res != nil {
@@ -127,26 +143,24 @@ func (h *ReservationHandler) CreateReservation(w http.ResponseWriter, r *http.Re
 
 	var amount float64
 	for _, dishID := range d.DISHITEMS {
-		dish, err := h.service.GetDishPrice(dishID)		
+		dish, err := h.service.GetDishPrice(dishID)
 		if err != nil {
-			log.Println("Failed to fetch dish for reservation:", err)		
+			log.Println("Failed to fetch dish for reservation:", err)
 			helpers.Error(w, http.StatusInternalServerError, "Failed to fetch dish for reservation")
 			return
-		}			
+		}
 		amount += float64(dish)
 	}
 	d.AMOUNT = amount
-
 
 	// Call service to create reservation
 
 	reservationData, err := h.service.CreateReservation(&d)
 	if err != nil {
-		log.Panicln("Failed to create reservation", err)
+		log.Println("Failed to create reservation", err)
 		helpers.Error(w, http.StatusInternalServerError, "Failed to create reservation")
 		return
 	}
-	
 
 	helpers.JSON(w, http.StatusCreated, "Reservation created successfully", reservationData)
 }

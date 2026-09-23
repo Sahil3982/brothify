@@ -65,14 +65,19 @@ func (r *ReservationRepository) GetReservationByID(id uuid.UUID) (*models.Reserv
               FROM reservation_dishes rd 
               JOIN dishes d ON rd.dish_id = d.dish_id 
               WHERE rd.reservation_id = $1`
-	dishRows, _ := r.DB.Query(context.Background(), dishQuery, res.ID)
+	dishRows, err := r.DB.Query(context.Background(), dishQuery, res.ID)
+	if err != nil {
+		log.Println("Get reservation dishes error:", err)
+		return nil, err
+	}
 
 	var dishes []models.Dish
 	for dishRows.Next() {
 		var d models.Dish
-		dishRows.Scan(
+		err := dishRows.Scan(
 			&d.ID,
 			&d.NAME,
+			&d.CATEGORYID,
 			&d.PRICE,
 			&d.DESCRIPTION,
 			&d.DISHURL,
@@ -80,6 +85,10 @@ func (r *ReservationRepository) GetReservationByID(id uuid.UUID) (*models.Reserv
 			&d.RATING,
 			&d.HIGHLIGHT,
 		)
+		if err != nil {
+			log.Println("Scan reservation dish error:", err)
+			return nil, err
+		}
 		dishes = append(dishes, d)
 	}
 	dishRows.Close()
@@ -154,6 +163,7 @@ func (r *ReservationRepository) GetAllReservations(search string, status string,
 			err := dishRows.Scan(
 				&d.ID,
 				&d.NAME,
+				&d.CATEGORYID,
 				&d.PRICE,
 				&d.DESCRIPTION,
 				&d.DISHURL,
@@ -172,6 +182,9 @@ func (r *ReservationRepository) GetAllReservations(search string, status string,
 		res.DISHDETAILS = dishes
 		reservations = append(reservations, res)
 
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 	return reservations, nil
 

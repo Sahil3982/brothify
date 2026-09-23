@@ -8,7 +8,7 @@ import (
 
 type Reservation struct {
 	ID                            uuid.UUID   `json:"reservation_id"`
-	USERID                        uuid.UUID   `json:"user_id"`
+	USERID                        *uuid.UUID  `json:"user_id,omitempty"`
 	TABLENUMBER                   int         `json:"table_number"`
 	RESERVATIONPERSONNAME         string      `json:"reservation_person_name"`
 	RESERVATIONPERSONEMAIL        string      `json:"reservation_person_email"`
