@@ -9,6 +9,7 @@ import (
 	"github.com/brothify/internal/dto"
 	"github.com/brothify/internal/models"
 	"github.com/brothify/internal/repositories"
+	"github.com/google/uuid"
 )
 
 type DishService struct {
@@ -19,7 +20,7 @@ func NewDishService(repo *repositories.DishRepository) *DishService {
 	return &DishService{repo: repo}
 }
 
-func (s *DishService) GetDishByID(id int) (*models.Dish, error) {
+func (s *DishService) GetDishByID(id uuid.UUID) (*models.Dish, error) {
 	return s.repo.GetDishByID(id)
 }
 
@@ -72,6 +73,6 @@ func (s *DishService) UpdateDish(id string, d *models.Dish) error {
 	return s.repo.UpdateDish(id, d)
 }
 
-func (s *DishService) DeleteDish(id string) error {
+func (s *DishService) DeleteDish(id uuid.UUID) (bool, error) {
 	return s.repo.DeleteDish(id)
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/brothify/internal/dto"
 	"github.com/brothify/internal/helpers"
@@ -25,6 +26,11 @@ func NewDishHandler(service *services.DishService) *DishHandler {
 func (h *DishHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
+		basePath := strings.TrimSuffix(r.URL.Path, "/")
+		if basePath != "/v1/api/dishes" {
+			h.GetDishById(w, r)
+			return
+		}
 		h.getAllDishes(w, r)
 	case http.MethodPost:
 		h.createDish(w, r)
@@ -40,7 +46,7 @@ func (h *DishHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h *DishHandler) GetDishById(w http.ResponseWriter, r *http.Request) {
 	id := helpers.ExtractIDFromPath(r)
 
-	dishID, err := strconv.Atoi(id)
+	dishID, err := uuid.Parse(id)
 	if err != nil {
 		helpers.Error(w, http.StatusBadRequest, "Invalid dish ID")
 		return
@@ -180,8 +186,19 @@ func (h *DishHandler) deleteDish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.DeleteDish(id); err != nil {
+	dishID, err := uuid.Parse(id)
+	if err != nil {
+		helpers.Error(w, http.StatusBadRequest, "Invalid dish ID format")
+		return
+	}
+
+	deleted, err := h.service.DeleteDish(dishID)
+	if err != nil {
 		helpers.Error(w, http.StatusInternalServerError, "Failed to delete dish")
+		return
+	}
+	if !deleted {
+		helpers.Error(w, http.StatusNotFound, "Dish not found with given ID")
 		return
 	}
 

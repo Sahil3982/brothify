@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/brothify/internal/models"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -16,7 +17,7 @@ func NewDishRepository(db *pgxpool.Pool) *DishRepository {
 	return &DishRepository{DB: db}
 }
 
-func (r *DishRepository) GetDishByID(id int) (*models.Dish, error) {
+func (r *DishRepository) GetDishByID(id uuid.UUID) (*models.Dish, error) {
 	ctx := context.Background()
 	query := `SELECT dish_id, dish_name, category_id, price, description, dish_url, availability, rating, highlight, created_at, updated_at 
 			  FROM dishes WHERE dish_id = $1`
@@ -136,8 +137,25 @@ func (r *DishRepository) UpdateDish(id string, d *models.Dish) error {
 	return err
 }
 
-func (r *DishRepository) DeleteDish(id string) error {
+func (r *DishRepository) DeleteDish(id uuid.UUID) (bool, error) {
 	ctx := context.Background()
-	_, err := r.DB.Exec(ctx, "DELETE FROM dishes WHERE dish_id = $1", id)
-	return err
+	tx, err := r.DB.Begin(ctx)
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback(ctx)
+
+	if _, err := tx.Exec(ctx, "DELETE FROM reservation_dishes WHERE dish_id = $1", id); err != nil {
+		return false, err
+	}
+
+	result, err := tx.Exec(ctx, "DELETE FROM dishes WHERE dish_id = $1", id)
+	if err != nil {
+		return false, err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return false, err
+	}
+
+	return result.RowsAffected() > 0, nil
 }
