@@ -126,15 +126,18 @@ func (r *DishRepository) CreateDish(ctx context.Context, d *models.Dish) (*model
 	return &newDish, nil
 }
 
-func (r *DishRepository) UpdateDish(id string, d *models.Dish) error {
+func (r *DishRepository) UpdateDish(id uuid.UUID, d *models.Dish) (bool, error) {
 	ctx := context.Background()
 	query := `
 		UPDATE dishes 
 		SET dish_name = $1, description = $2, price = $3, category_id = $4, dish_url = $5, availability = $6, rating = $7, highlight = $8
 		WHERE dish_id = $9
 	`
-	_, err := r.DB.Exec(ctx, query, d.NAME, d.DESCRIPTION, d.PRICE, d.CATEGORYID, d.DISHURL, d.AVAILABILITY, d.RATING, d.HIGHLIGHT, id)
-	return err
+	result, err := r.DB.Exec(ctx, query, d.NAME, d.DESCRIPTION, d.PRICE, d.CATEGORYID, d.DISHURL, d.AVAILABILITY, d.RATING, d.HIGHLIGHT, id)
+	if err != nil {
+		return false, err
+	}
+	return result.RowsAffected() > 0, nil
 }
 
 func (r *DishRepository) DeleteDish(id uuid.UUID) (bool, error) {

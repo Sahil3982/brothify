@@ -69,7 +69,7 @@ func (s *DishService) CreateDish(ctx context.Context, req *dto.DishRequest, file
 	return response, nil
 }
 
-func (s *DishService) UpdateDish(id string, d *models.Dish) error {
+func (s *DishService) UpdateDish(id uuid.UUID, d *models.Dish) (bool, error) {
 	return s.repo.UpdateDish(id, d)
 }
 

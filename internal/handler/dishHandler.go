@@ -135,10 +135,27 @@ func (h *DishHandler) updateDish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var m models.Dish
 	var d dto.DishRequest
-
-	if err := json.NewDecoder(r.Body).Decode(&d); err != nil {
+	contentType := r.Header.Get("Content-Type")
+	if strings.HasPrefix(contentType, "multipart/form-data") {
+		if err := r.ParseMultipartForm(10 << 20); err != nil {
+			helpers.Error(w, http.StatusBadRequest, "Invalid request payload")
+			return
+		}
+		d.NAME = r.FormValue("dish_name")
+		d.DESCRIPTION = r.FormValue("description")
+		d.DISHURL = r.FormValue("dish_url")
+		d.CATEGORYID, err = uuid.Parse(r.FormValue("category_id"))
+		if err != nil {
+			helpers.Error(w, http.StatusBadRequest, "Invalid category ID")
+			return
+		}
+		d.PRICE, err = strconv.ParseFloat(r.FormValue("price"), 64)
+		if err != nil {
+			helpers.Error(w, http.StatusBadRequest, "Invalid price")
+			return
+		}
+	} else if err := json.NewDecoder(r.Body).Decode(&d); err != nil {
 		helpers.Error(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
@@ -148,30 +165,25 @@ func (h *DishHandler) updateDish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	allDishes, err := h.service.GetAllDishes()
+	m := models.Dish{
+		ID:           parsedID,
+		NAME:         d.NAME,
+		CATEGORYID:   &d.CATEGORYID,
+		PRICE:        d.PRICE,
+		DESCRIPTION:  d.DESCRIPTION,
+		DISHURL:      d.DISHURL,
+		AVAILABILITY: d.AVAILABILITY,
+		RATING:       d.RATING,
+		HIGHLIGHT:    d.HIGHLIGHT,
+	}
+
+	updated, err := h.service.UpdateDish(parsedID, &m)
 	if err != nil {
-		helpers.Error(w, http.StatusInternalServerError, "Failed to fetch dishes for validation")
-		return
-	}
-
-	var exists bool
-	for _, dish := range allDishes {
-		if dish.ID == parsedID {
-			exists = true
-			break
-		}
-	}
-
-	if !exists {
-		helpers.Error(w, http.StatusNotFound, "Dish not found with given ID")
-		return
-	}
-
-	// d.ID = parsedID
-
-	// ✅ Proceed to update
-	if err := h.service.UpdateDish(id, &m); err != nil {
 		helpers.Error(w, http.StatusInternalServerError, "Failed to update dish")
+		return
+	}
+	if !updated {
+		helpers.Error(w, http.StatusNotFound, "Dish not found with given ID")
 		return
 	}
 
