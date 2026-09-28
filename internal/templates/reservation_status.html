@@ -41,21 +41,20 @@
 <body>
     <div class="container">
         <div class="header">
-            ✅ Reservation Confirmed
+            Reservation Status Updated
         </div>
 
         <div class="content">
-            Hi {{.RESERVATIONPERSONNAME}},<br><br>
+            Hi {{.CustomerName}},<br><br>
 
-            Your table reservation has been <span class="highlight">successfully confirmed</span>.
+            Your table reservation status is <span class="highlight">{{.Status}}</span>.
 
             <br><br>
             <strong>Reservation Details:</strong><br>
-            Reservation ID: {{.ID}}<br>
-            Date: {{.RESERVATIONDATE}}<br>
-            Time: {{.RESERVATIONTIME}}<br>
-            Guests: {{.NUMBEROFGUESTS}}<br>
-            Table Number: {{.TABLENUMBER}}<br>
+            Reservation ID: {{.ReservationID}}<br>
+            Date: {{.ReservationDate}}<br>
+            Time: {{.ReservationTime}}<br>
+            Guests: {{.Guest}}<br>
 
             <br>
             We look forward to serving you 😊
@@ -65,10 +64,6 @@
             — Team Brothify<br>
             This is an automated email. Please do not reply.
         </div>
-    </div>
-    <div>
-        Please find attached your invoice for the reservation.
-        {{.INVOICEHTML}}
     </div>
     <div>
         Please visit our website: <a href="https://brothify.example.com">brothify.example.com</a>

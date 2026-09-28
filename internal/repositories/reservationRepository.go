@@ -265,7 +265,7 @@ RETURNING
 	return d, nil
 }
 
-func (r *ReservationRepository) UpdateReservation(d *models.Reservation, id string) (*models.Reservation, error) {
+func (r *ReservationRepository) UpdateReservation(d *models.Reservation, id uuid.UUID) (*models.Reservation, error) {
 	query := `
         UPDATE reservations SET
             user_id                        = $1,

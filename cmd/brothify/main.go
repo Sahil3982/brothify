@@ -21,6 +21,8 @@ func main() {
 	config.InitS3()
 	config.InitSES()
 	config.InitRazorpay()
+	emailService := &config.EmailSender{}
+
 
 	if err := database.RunMigration(db); err != nil {
 		log.Fatal("Migration Error:", err)
@@ -35,7 +37,7 @@ func main() {
 	userService := services.NewUserService(userRepo)
 	dishService := services.NewDishService(dishRepo)
 	categoryService := services.NewCategoryService(categoryRepo)
-	reservationService := services.NewReservationService(reservationRepo)
+	reservationService := services.NewReservationService(reservationRepo,emailService)
 
 	userHandler := handler.NewUserHandler(userService)
 	dishHandler := handler.NewDishHandler(dishService)

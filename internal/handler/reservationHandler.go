@@ -167,10 +167,19 @@ func (h *ReservationHandler) CreateReservation(w http.ResponseWriter, r *http.Re
 
 func (h *ReservationHandler) UpdateReservation(w http.ResponseWriter, r *http.Request) {
 	var d models.Reservation
+	if err := json.NewDecoder(r.Body).Decode(&d); err != nil {
+		helpers.Error(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
 	params := helpers.ExtractIDFromPath(r)
-	data, err := h.service.UpdateReservation(&d, params)
+	uid, err := uuid.Parse(params)
 	if err != nil {
-		log.Println("Reservation not updated", err)
+		helpers.Error(w, http.StatusBadRequest, "Invalid reservation ID")
+		return
+	}
+	data, err := h.service.UpdateReservation(&d, uid)
+	if err != nil {
+		log.Println("Reservation not updated:", err)
 		helpers.Error(w, http.StatusBadRequest, "Reservation not updated")
 		return
 	}
