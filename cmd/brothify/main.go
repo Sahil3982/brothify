@@ -32,19 +32,22 @@ func main() {
 	categoryRepo := repositories.NewCategoryRepository(db)
 	userRepo := repositories.NewUserRepository(db)
 	reservationRepo := repositories.NewReservationRepository(db)
+	feedbackRepo := repositories.NewFeedbackRepository(db)
 	paymentHandler := handler.NewPaymentHandler(reservationRepo)
 
 	userService := services.NewUserService(userRepo)
 	dishService := services.NewDishService(dishRepo)
 	categoryService := services.NewCategoryService(categoryRepo)
 	reservationService := services.NewReservationService(reservationRepo,emailService)
+	feedbackService := services.NewFeedbackService(feedbackRepo)
 
 	userHandler := handler.NewUserHandler(userService)
 	dishHandler := handler.NewDishHandler(dishService)
 	categoryHandler := handler.NewCategoryHandler(categoryService)
 	reservationHandler := handler.NewReservationHandler(reservationService)
+	feedbackHandler := handler.NewFeedbackHandler(feedbackService)
 
-	mux := router.NewRouter(dishHandler, userHandler, reservationHandler, paymentHandler, categoryHandler)
+	mux := router.NewRouter(feedbackHandler, dishHandler, userHandler, reservationHandler, paymentHandler, categoryHandler)
 	handler := middleware.CorsMiddleware(mux)
 	port := os.Getenv("PORT")
 	if port == "" {

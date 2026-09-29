@@ -9,7 +9,7 @@ import (
 	"github.com/brothify/internal/middleware"
 )
 
-func NewRouter(dishHandler *handler.DishHandler, userHandler *handler.UserHandler, reservationHandler *handler.ReservationHandler, paymentHandler *handler.PaymentHandler, categoryHandler *handler.CategoryHandler) *http.ServeMux {
+func NewRouter(feedbackHandler *handler.FeedbackHandler ,dishHandler *handler.DishHandler, userHandler *handler.UserHandler, reservationHandler *handler.ReservationHandler, paymentHandler *handler.PaymentHandler, categoryHandler *handler.CategoryHandler) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -22,6 +22,7 @@ func NewRouter(dishHandler *handler.DishHandler, userHandler *handler.UserHandle
 	mux.Handle("/v1/api/dishes/", protectNonGet(dishHandler))
 	mux.Handle("/v1/api/login/", userHandler)
 	mux.Handle("/v1/api/reservations/", publicPost(reservationHandler))
+	mux.Handle("/v1/api/feedback",feedbackHandler)
 
 	return mux
 }
