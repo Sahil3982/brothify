@@ -5,8 +5,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"html/template"
 
@@ -14,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/ses/types"
 	"github.com/brothify/internal/models"
+	"github.com/google/uuid"
 )
 
 var SES *ses.Client
@@ -62,6 +66,69 @@ func (e *EmailSender) SendReservationStatusEmail(
 		"Reservation Status Updated",
 		body.String(),
 	)
+}
+
+func (e *EmailSender) SendFeedbackReminderEmail(reservation *models.Reservation) error {
+	body, err := buildFeedbackReminderHTML(reservation, os.Getenv("FEEDBACK_PAGE_URL"))
+	if err != nil {
+		return err
+	}
+
+	return SendEmail(
+		reservation.RESERVATIONPERSONEMAIL,
+		"How was your Brothify reservation?",
+		body,
+	)
+}
+
+func buildFeedbackReminderHTML(reservation *models.Reservation, pageURL string) (string, error) {
+	feedbackURL, err := buildFeedbackURL(pageURL, reservation.ID)
+	if err != nil {
+		return "", err
+	}
+
+	tmpl, err := template.ParseFiles("internal/templates/feedback.html")
+	if err != nil {
+		return "", fmt.Errorf("failed to load feedback email template: %w", err)
+	}
+	data := struct {
+		UserName        string
+		FeedbackURL     string
+		ReservationID   string
+		ReservationDate string
+		ReservationTime string
+		CompanyName     string
+		Year            string
+	}{
+		UserName:        reservation.RESERVATIONPERSONNAME,
+		FeedbackURL:     feedbackURL,
+		ReservationID:   reservation.ID.String(),
+		ReservationDate: reservation.RESERVATIONDATE,
+		ReservationTime: reservation.RESERVATIONTIME,
+		CompanyName:     "Brothify",
+		Year:            strconv.Itoa(time.Now().Year()),
+	}
+	var body bytes.Buffer
+	if err := tmpl.Execute(&body, data); err != nil {
+		return "", fmt.Errorf("failed to execute feedback email template: %w", err)
+	}
+
+	return body.String(), nil
+}
+
+func buildFeedbackURL(pageURL string, reservationID uuid.UUID) (string, error) {
+	pageURL = strings.TrimSpace(pageURL)
+	if pageURL == "" {
+		return "", fmt.Errorf("FEEDBACK_PAGE_URL environment variable is not set")
+	}
+	parsedURL, err := url.Parse(pageURL)
+	if err != nil || parsedURL.Host == "" || (parsedURL.Scheme != "http" && parsedURL.Scheme != "https") {
+		return "", fmt.Errorf("FEEDBACK_PAGE_URL must be an absolute HTTP or HTTPS URL")
+	}
+	query := parsedURL.Query()
+	query.Set("reservation_id", reservationID.String())
+	parsedURL.RawQuery = query.Encode()
+	return parsedURL.String(), nil
 }
 
 func SendEmail(to string, subject string, body string) error {

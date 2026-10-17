@@ -1,7 +1,13 @@
 package services
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"log"
+	"os"
+	"strings"
+	"time"
 
 	"github.com/brothify/internal/models"
 	"github.com/brothify/internal/repositories"
@@ -10,6 +16,7 @@ import (
 
 type EmailService interface {
 	SendReservationStatusEmail(reservation *models.Reservation) error
+	SendFeedbackReminderEmail(reservation *models.Reservation) error
 }
 
 type ReservationService struct {
@@ -93,4 +100,82 @@ func (s *ReservationService) DeleteReservation(d *models.Reservation, params str
 
 func (s *ReservationService) GetDishPrice(dishID uuid.UUID) (float64, error) {
 	return s.repo.GetDishPriceByID(dishID)
+}
+
+func (s *ReservationService) Name() string {
+	return "feedback-reminders"
+}
+
+func (s *ReservationService) Spec() string {
+	return "@every 1m"
+}
+
+func (s *ReservationService) Run(ctx context.Context) error {
+	return s.SendDueFeedbackReminders(ctx)
+}
+
+func (s *ReservationService) SendDueFeedbackReminders(ctx context.Context) error {
+	location := time.Local
+	if timezone := strings.TrimSpace(os.Getenv("RESERVATION_TIMEZONE")); timezone != "" {
+		var err error
+		location, err = time.LoadLocation(timezone)
+		if err != nil {
+			return fmt.Errorf("load reservation timezone %q: %w", timezone, err)
+		}
+	}
+
+	reservations, err := s.repo.GetPendingFeedbackReminders(ctx)
+	if err != nil {
+		return fmt.Errorf("get pending feedback reminders: %w", err)
+	}
+
+	now := time.Now().In(location)
+	var reminderErrors []error
+	for i := range reservations {
+		reservation := &reservations[i]
+		reservationAt, err := parseReservationDateTime(
+			reservation.RESERVATIONDATE,
+			reservation.RESERVATIONTIME,
+			location,
+		)
+		if err != nil {
+			reminderErrors = append(reminderErrors, fmt.Errorf("reservation %s: %w", reservation.ID, err))
+			continue
+		}
+		if !feedbackReminderDue(reservationAt, now) {
+			continue
+		}
+		if err := s.email.SendFeedbackReminderEmail(reservation); err != nil {
+			reminderErrors = append(reminderErrors, fmt.Errorf("send feedback reminder for %s: %w", reservation.ID, err))
+			continue
+		}
+		if err := s.repo.MarkFeedbackReminderSent(ctx, reservation.ID); err != nil {
+			reminderErrors = append(reminderErrors, fmt.Errorf("mark feedback reminder sent for %s: %w", reservation.ID, err))
+		}
+	}
+	return errors.Join(reminderErrors...)
+}
+
+func feedbackReminderDue(reservationAt, now time.Time) bool {
+	return !now.Before(reservationAt.Add(6 * time.Hour))
+}
+
+func parseReservationDateTime(date, clock string, location *time.Location) (time.Time, error) {
+	parsedDate, err := time.ParseInLocation("2006-01-02", strings.TrimSpace(date), location)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("invalid reservation date %q: %w", date, err)
+	}
+
+	clock = strings.TrimSpace(clock)
+	var parsedTime time.Time
+	for _, layout := range []string{"15:04", "15:04:05", "3:04 PM", "3:04:05 PM"} {
+		parsedTime, err = time.ParseInLocation(layout, clock, location)
+		if err == nil {
+			return time.Date(
+				parsedDate.Year(), parsedDate.Month(), parsedDate.Day(),
+				parsedTime.Hour(), parsedTime.Minute(), parsedTime.Second(), 0, location,
+			), nil
+		}
+	}
+	return time.Time{}, fmt.Errorf("invalid reservation time %q", clock)
 }

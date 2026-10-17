@@ -367,3 +367,46 @@ func (r *ReservationRepository) SaveInvoiceURL(reservationID uuid.UUID, paymentI
 	)
 	return err
 }
+
+func (r *ReservationRepository) GetPendingFeedbackReminders(ctx context.Context) ([]models.Reservation, error) {
+	rows, err := r.DB.Query(ctx, `
+		SELECT reservation_id, reservation_person_name, reservation_person_email,
+			reservation_date, reservation_time
+		FROM reservations
+		WHERE feedback_reminder_sent_at IS NULL
+			AND LOWER(COALESCE(status, '')) NOT IN ('cancelled', 'canceled')
+		ORDER BY created_at
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var reservations []models.Reservation
+	for rows.Next() {
+		var reservation models.Reservation
+		if err := rows.Scan(
+			&reservation.ID,
+			&reservation.RESERVATIONPERSONNAME,
+			&reservation.RESERVATIONPERSONEMAIL,
+			&reservation.RESERVATIONDATE,
+			&reservation.RESERVATIONTIME,
+		); err != nil {
+			return nil, err
+		}
+		reservations = append(reservations, reservation)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return reservations, nil
+}
+
+func (r *ReservationRepository) MarkFeedbackReminderSent(ctx context.Context, id uuid.UUID) error {
+	_, err := r.DB.Exec(ctx, `
+		UPDATE reservations
+		SET feedback_reminder_sent_at = NOW()
+		WHERE reservation_id = $1 AND feedback_reminder_sent_at IS NULL
+	`, id)
+	return err
+}

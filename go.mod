@@ -13,6 +13,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/joho/godotenv v1.5.1
 	github.com/razorpay/razorpay-go v1.4.0
+	github.com/robfig/cron/v3 v3.0.1
 )
 
 require (

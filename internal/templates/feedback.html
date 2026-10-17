@@ -1,10 +1,9 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>We'd Love Your Feedback</title>
+  <title>How was your Brothify reservation?</title>
 </head>
 
 <body style="margin:0; padding:0; background-color:#f4f6f8; font-family:Arial, Helvetica, sans-serif;">
@@ -20,7 +19,7 @@
           <tr>
             <td style="background:#2563eb; padding:30px; text-align:center;">
               <h1 style="color:#ffffff; margin:0; font-size:26px;">
-                We'd Love Your Feedback
+                How Was Your Visit?
               </h1>
             </td>
           </tr>
@@ -34,13 +33,18 @@
               </p>
 
               <p style="font-size:16px; line-height:1.6;">
-                Thank you for using our service. We would love to hear about
-                your experience.
+                Thank you for dining with Brothify. We hope you enjoyed your
+                visit and would love to hear about your experience.
+              </p>
+
+              <p style="font-size:14px; line-height:1.6; color:#555555;">
+                <strong>Reservation:</strong> {{.ReservationID}}<br>
+                <strong>Date:</strong> {{.ReservationDate}}<br>
+                <strong>Time:</strong> {{.ReservationTime}}
               </p>
 
               <p style="font-size:16px; line-height:1.6;">
-                Your feedback helps us improve our product and provide a
-                better experience.
+                Your feedback helps our team make every visit even better.
               </p>
 
               <!-- Button -->
@@ -57,7 +61,7 @@
                          font-size:16px;
                          font-weight:bold;
                        ">
-                      Give Your Feedback
+                      Review Your Visit
                     </a>
                   </td>
                 </tr>
@@ -74,7 +78,7 @@
               </p>
 
               <p style="font-size:16px; margin-bottom:0;">
-                Thank you for your time!
+                Thank you for taking a moment to share your feedback.
               </p>
 
               <p style="font-size:16px;">
@@ -102,4 +106,3 @@
 
 </body>
 </html>
-```

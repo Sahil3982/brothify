@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/brothify/internal/config"
+	"github.com/brothify/internal/cron"
 	"github.com/brothify/internal/handler"
 	"github.com/brothify/internal/middleware"
 	"github.com/brothify/internal/repositories"
@@ -23,7 +24,6 @@ func main() {
 	config.InitRazorpay()
 	emailService := &config.EmailSender{}
 
-
 	if err := database.RunMigration(db); err != nil {
 		log.Fatal("Migration Error:", err)
 	}
@@ -38,7 +38,7 @@ func main() {
 	userService := services.NewUserService(userRepo)
 	dishService := services.NewDishService(dishRepo)
 	categoryService := services.NewCategoryService(categoryRepo)
-	reservationService := services.NewReservationService(reservationRepo,emailService)
+	reservationService := services.NewReservationService(reservationRepo, emailService)
 	feedbackService := services.NewFeedbackService(feedbackRepo)
 
 	userHandler := handler.NewUserHandler(userService)
@@ -46,6 +46,13 @@ func main() {
 	categoryHandler := handler.NewCategoryHandler(categoryService)
 	reservationHandler := handler.NewReservationHandler(reservationService)
 	feedbackHandler := handler.NewFeedbackHandler(feedbackService)
+
+	scheduler := cron.NewScheduler()
+	if err := scheduler.Register(reservationService); err != nil {
+		log.Fatal("Failed to register feedback reminder job:", err)
+	}
+	scheduler.Start()
+	defer scheduler.Stop()
 
 	mux := router.NewRouter(feedbackHandler, dishHandler, userHandler, reservationHandler, paymentHandler, categoryHandler)
 	handler := middleware.CorsMiddleware(mux)

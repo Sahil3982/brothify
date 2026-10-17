@@ -94,9 +94,12 @@ func RunMigration(db *pgxpool.Pool) error {
 			signature VARCHAR(255),
 			payment_status VARCHAR(50),
 			invoice_url TEXT,
+			feedback_reminder_sent_at TIMESTAMPTZ,
 			created_at TIMESTAMP DEFAULT NOW(),
 			updated_at TIMESTAMP DEFAULT NOW()
 		);`,
+		`ALTER TABLE reservations
+			ADD COLUMN IF NOT EXISTS feedback_reminder_sent_at TIMESTAMPTZ;`,
 		`ALTER TABLE reservations ALTER COLUMN user_id DROP NOT NULL;`,
 		` CREATE TABLE IF NOT EXISTS reservation_dishes (
 			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -107,12 +110,13 @@ func RunMigration(db *pgxpool.Pool) error {
 		`,
 		`CREATE TABLE IF NOT EXISTS feedback (
 			feedback_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-			user_id UUID NOT NULL REFERENCES users(user_id),
+			user_id UUID REFERENCES users(user_id),
 			rating INT CHECK (rating >= 1 AND rating <= 5),
 			comment TEXT,
 			created_at TIMESTAMP DEFAULT NOW(),
 			updated_at TIMESTAMP DEFAULT NOW()
 		);`,
+		`ALTER TABLE feedback ALTER COLUMN user_id DROP NOT NULL;`,
 		`CREATE TABLE IF NOT EXISTS dish_categories (
 			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 			dish_id UUID NOT NULL REFERENCES dishes(dish_id) ON DELETE CASCADE,
