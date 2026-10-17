@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"html/template"
 	"log"
 	"net/url"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
-
-	"html/template"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
@@ -41,9 +42,7 @@ func (e *EmailSender) SendReservationStatusEmail(
 	reservation *models.Reservation,
 ) error {
 
-	tmpl, err := template.ParseFiles(
-		"internal/templates/reservation_status.html",
-	)
+	tmpl, err := template.ParseFiles(templatePath("reservation_status.html"))
 	if err != nil {
 		return fmt.Errorf("failed to load email template: %w", err)
 	}
@@ -81,13 +80,21 @@ func (e *EmailSender) SendFeedbackReminderEmail(reservation *models.Reservation)
 	)
 }
 
+func templatePath(name string) string {
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		return name
+	}
+	return filepath.Join(filepath.Dir(filepath.Dir(filename)), "templates", name)
+}
+
 func buildFeedbackReminderHTML(reservation *models.Reservation, pageURL string) (string, error) {
 	feedbackURL, err := buildFeedbackURL(pageURL, reservation.ID)
 	if err != nil {
 		return "", err
 	}
 
-	tmpl, err := template.ParseFiles("internal/templates/feedback.html")
+	tmpl, err := template.ParseFiles(templatePath("feedback.html"))
 	if err != nil {
 		return "", fmt.Errorf("failed to load feedback email template: %w", err)
 	}
